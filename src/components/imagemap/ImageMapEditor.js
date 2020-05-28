@@ -431,7 +431,6 @@ class ImageMapEditor extends Component {
 
             // Get all base 64
             Promise.all(base64Promises).then(data => {
-              console.log(data);
               if (data?.length === changedValue) {
                 const slideIds = [];
 
