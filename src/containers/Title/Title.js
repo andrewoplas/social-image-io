@@ -1,3 +1,6 @@
+/**
+ * Main header of the app
+ */
 import { Button, Modal, Tooltip } from 'antd';
 import i18n from 'i18next';
 import React, { useState } from 'react';

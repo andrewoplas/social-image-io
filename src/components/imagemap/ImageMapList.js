@@ -1,3 +1,4 @@
+/* eslint-disable indent */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Button } from 'antd';
@@ -50,6 +51,9 @@ class ImageMapList extends Component {
           .getObjects()
           .filter(obj => {
             if (obj.id === 'workarea') {
+              return false;
+            }
+            if (obj.id && obj.id.startsWith('slide')) {
               return false;
             }
             if (obj.id) {

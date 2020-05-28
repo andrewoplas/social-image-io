@@ -1,7 +1,21 @@
 {
-  "My Images": [],
+  "My Images": [
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    }
+  ],
 
-  "Upload": [],
   "Stock Images": [
     {
       "name": "Image",
@@ -14,23 +28,91 @@
       "option": {
         "type": "image",
         "name": "New image",
-        "src": "./images/sample/transparentBg.png"
+        "src": "./images/sample/test_image.jpg"
       }
     },
     {
-      "name": "GIF",
+      "name": "Image",
       "description": "",
-      "type": "gif",
+      "type": "image",
       "icon": {
         "prefix": "fas",
         "name": "image"
       },
       "option": {
-        "type": "gif",
-        "width": 400,
-        "height": 400,
-        "name": "New gif",
-        "src": ""
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
       }
     }
   ],
@@ -45,7 +127,7 @@
       },
       "option": {
         "type": "textbox",
-        "text": "",
+        "text": "Text Here",
         "width": 60,
         "height": 30,
         "fontSize": 32,

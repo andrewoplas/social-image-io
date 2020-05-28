@@ -1,21 +1,23 @@
-import React, { Component } from 'react';
-import { Badge, Button, Popconfirm, Menu } from 'antd';
-import debounce from 'lodash/debounce';
+/* eslint-disable no-alert */
+import { Badge, Button, Menu, Popconfirm } from 'antd';
+import { fabric } from 'fabric';
+import Jimp from 'jimp';
 import i18n from 'i18next';
-
-import ImageMapFooterToolbar from './ImageMapFooterToolbar';
-import ImageMapItems from './ImageMapItems';
-import ImageMapTitle from './ImageMapTitle';
-import ImageMapHeaderToolbar from './ImageMapHeaderToolbar';
-import ImageMapPreview from './ImageMapPreview';
-import ImageMapConfigurations from './ImageMapConfigurations';
-import SandBox from '../sandbox/SandBox';
-
+import debounce from 'lodash/debounce';
+import React, { Component } from 'react';
+import { v4 } from 'uuid';
 import '../../libs/fontawesome-5.2.0/css/all.css';
 import '../../styles/index.less';
-import Container from '../common/Container';
-import CommonButton from '../common/CommonButton';
 import Canvas from '../canvas/Canvas';
+import CommonButton from '../common/CommonButton';
+import Container from '../common/Container';
+import SandBox from '../sandbox/SandBox';
+import ImageMapConfigurations from './ImageMapConfigurations';
+import ImageMapFooterToolbar from './ImageMapFooterToolbar';
+import ImageMapHeaderToolbar from './ImageMapHeaderToolbar';
+import ImageMapItems from './ImageMapItems';
+import ImageMapPreview from './ImageMapPreview';
+import ImageMapTitle from './ImageMapTitle';
 
 const propertiesToInclude = [
   'id',
@@ -90,6 +92,7 @@ class ImageMapEditor extends Component {
     editing: false,
     descriptors: {},
     objects: undefined,
+    slides: [],
   };
 
   componentDidMount() {
@@ -384,6 +387,82 @@ class ImageMapEditor extends Component {
         this.canvasRef.canvas.centerObject(this.canvasRef.handler.workarea);
         return;
       }
+      if (changedKey === 'slides') {
+        this.canvasRef.handler.workarea.set(changedKey, changedValue);
+        this.state.slides.forEach(slideId => this.canvasRef.handler.removeById(slideId));
+
+        // Set coordinates and size
+        const { workarea } = this.canvasRef.handler;
+        const slideSpacing = 15;
+        const slideWidth = workarea.width / changedValue;
+
+        // Create element option
+        const option = {
+          type: 'image',
+          width: slideWidth,
+          height: workarea.height,
+          top: workarea.top + workarea.height + 30,
+          left: 0,
+          name: 'slide',
+          isSlide: true,
+        };
+
+        // Get canvas image in URI
+        const canvasImageUri = this.getCanvasUri();
+        const buf = Buffer.from(canvasImageUri.split(',')[1], 'base64');
+
+        // workarea's left - half of excess on the right because of spacing; to center slide series
+        // -1 for not including the first slide, no spacing in first slide
+        const workareaLeft = workarea.left - (slideSpacing * (changedValue - 1)) / 2;
+        Jimp.read(buf, (err, image) => {
+          if (!err) {
+            const base64Promises = [];
+
+            // Get base 64 async
+            for (let i = 0; i < changedValue; i++) {
+              const imageCloned = image.clone();
+              base64Promises.push(
+                imageCloned
+                  .crop(slideWidth * i, 0, slideWidth, workarea.height)
+                  .quality(100)
+                  .getBase64Async(Jimp.MIME_JPEG),
+              );
+            }
+
+            // Get all base 64
+            Promise.all(base64Promises).then(data => {
+              console.log(data);
+              if (data?.length === changedValue) {
+                const slideIds = [];
+
+                // Store slides
+                for (let i = 0; i < changedValue; i += 1) {
+                  const id = `slide-${v4()}`;
+                  slideIds.push(id);
+
+                  this.canvasRef.handler.add(
+                    {
+                      ...option,
+                      id,
+                      src: data[i],
+                      left: workareaLeft + slideWidth * i + slideSpacing * i,
+                    },
+                    true /* centered */,
+                    false /* loaded */,
+                    false /* transaction */,
+                    true /* isSlide */,
+                  );
+                }
+
+                this.setState({ slides: slideIds });
+              }
+            });
+          } else {
+            alert('An error occurred!');
+          }
+        });
+      }
+
       this.canvasRef.handler.workarea.set(changedKey, changedValue);
       this.canvasRef.canvas.requestRenderAll();
     },
@@ -505,9 +584,34 @@ class ImageMapEditor extends Component {
         </Menu>
       );
     },
-    onTransaction: transaction => {
+    onTransaction: () => {
       this.forceUpdate();
     },
+  };
+
+  getCanvasUri = () => {
+    // Make a new group
+    const fabricGroup = new fabric.Group();
+    const { canvas } = this.canvasRef;
+
+    // Ensure originX/Y 'center' is being used, as text uses left/top by default.
+    fabricGroup.set({ originX: 'center', originY: 'center' });
+
+    // Put canvas things in new group
+    // eslint-disable-next-line no-plusplus
+    for (let i = 0; i < canvas.getObjects().length; i++) {
+      const type = canvas.item(i).get('type');
+      const id = canvas.item(i).get('id');
+      if (type === 'image' || type === 'textbox' || !id.startsWith('slide')) {
+        const clone = fabric.util.object.clone(canvas.item(i));
+        fabricGroup.addWithUpdate(clone).setCoords();
+      }
+    }
+
+    return fabricGroup.toDataURL({
+      format: 'png',
+      quality: 1,
+    });
   };
 
   handlers = {
@@ -629,7 +733,9 @@ class ImageMapEditor extends Component {
       });
     },
     onSaveImage: () => {
-      this.canvasRef.handler.saveCanvasImage();
+      this.canvasRef.handler.saveCanvasImage({
+        name: this.canvasRef.handler.workarea.name,
+      });
     },
   };
 
@@ -643,9 +749,8 @@ class ImageMapEditor extends Component {
     },
   };
 
-  transformList = () => {
-    return Object.values(this.state.descriptors).reduce((prev, curr) => prev.concat(curr), []);
-  };
+  transformList = () =>
+    Object.values(this.state.descriptors).reduce((prev, curr) => prev.concat(curr), []);
 
   showLoading = loading => {
     this.setState({
@@ -684,6 +789,7 @@ class ImageMapEditor extends Component {
       onClick,
       onContext,
       onTransaction,
+      onLoad,
     } = this.canvasHandlers;
     const {
       onChangePreview,
@@ -741,12 +847,14 @@ class ImageMapEditor extends Component {
         />
       </React.Fragment>
     );
+
     const titleContent = (
       <React.Fragment>
         <span>{i18n.t('imagemap.imagemap-editor')}</span>
       </React.Fragment>
     );
     const title = <ImageMapTitle title={titleContent} action={action} />;
+
     const content = (
       <div className="rde-editor">
         <ImageMapItems
@@ -797,6 +905,7 @@ class ImageMapEditor extends Component {
               preview={preview}
               onChangePreview={onChangePreview}
               zoomRatio={zoomRatio}
+              onSaveImage={onSaveImage}
             />
           </div>
         </div>
@@ -820,7 +929,9 @@ class ImageMapEditor extends Component {
         />
       </div>
     );
-    return <Container title={title} content={content} loading={loading} className="" />;
+
+    // TODO: Hide title first
+    return <Container title={null} content={content} loading={loading} className="" />;
   }
 }
 

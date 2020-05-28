@@ -1,16 +1,17 @@
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { Button, Switch, Tooltip, Icon } from 'antd';
+/* eslint-disable consistent-return */
+/* eslint-disable react/sort-comp, react/prop-types */
+import { Button, Divider } from 'antd';
 import i18n from 'i18next';
-
+import PropTypes from 'prop-types';
+import React, { Component } from 'react';
 import CommonButton from '../common/CommonButton';
 
 class ImageMapFooterToolbar extends Component {
   static propTypes = {
     canvasRef: PropTypes.any,
-    preview: PropTypes.bool,
     onChangePreview: PropTypes.func,
     zoomRatio: PropTypes.number,
+    onSaveImage: PropTypes.func,
   };
 
   state = {
@@ -46,7 +47,6 @@ class ImageMapFooterToolbar extends Component {
     canvasRef.canvas.wrapperEl.removeEventListener('keydown', this.events.keydown);
   };
 
-  /* eslint-disable react/sort-comp, react/prop-types */
   handlers = {
     selection: () => {
       if (this.props.canvasRef.handler.interactionHandler.isDrawingMode()) {
@@ -78,7 +78,7 @@ class ImageMapFooterToolbar extends Component {
   };
 
   render() {
-    const { canvasRef, preview, zoomRatio, onChangePreview } = this.props;
+    const { canvasRef, zoomRatio, onChangePreview, onSaveImage } = this.props;
     const { interactionMode } = this.state;
     const { selection, grab } = this.handlers;
     if (!canvasRef) {
@@ -145,15 +145,15 @@ class ImageMapFooterToolbar extends Component {
           </Button.Group>
         </div>
         <div className="rde-editor-footer-toolbar-preview">
-          <Tooltip title={i18n.t('action.preview')}>
-            <Switch checked={preview} onChange={onChangePreview} />
-          </Tooltip>
-          <Tooltip title={i18n.t('action.preview')}>
-            <Switch checked={preview} onChange={onChangePreview} />
-          </Tooltip>
-          <Tooltip title={i18n.t('action.preview')}>
-            <Switch checked={preview} onChange={onChangePreview} />
-          </Tooltip>
+          <Button type="primary" icon="eye" onClick={() => onChangePreview(true)}>
+            Preview
+          </Button>
+
+          <Divider className="rde-editor-footer-toolbar-preview-divider" type="vertical" />
+
+          <Button type="primary" icon="cloud-download" onClick={onSaveImage}>
+            Download
+          </Button>
         </div>
       </React.Fragment>
     );

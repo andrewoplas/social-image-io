@@ -1,3 +1,11 @@
+/* eslint-disable jsx-a11y/alt-text */
+/* eslint-disable no-unused-vars */
+/* eslint-disable jsx-a11y/click-events-have-key-events */
+/* eslint-disable jsx-a11y/no-static-element-interactions */
+
+/**
+ * Left sidebar
+ */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
 import { Collapse, notification, Input, message } from 'antd';
@@ -23,7 +31,6 @@ class ImageMapItems extends Component {
   };
 
   state = {
-    activeKey: [],
     collapse: false,
     textSearch: '',
     descriptors: {},
@@ -119,6 +126,7 @@ class ImageMapItems extends Component {
         this.handlers.onSVGModalVisible(item.option);
         return;
       }
+
       canvasRef.handler.add(option, centered);
     },
     onAddSVG: (option, centered) => {
@@ -250,36 +258,34 @@ class ImageMapItems extends Component {
     </FlexBox>
   );
 
-  renderItem = (item, centered) =>
-    item.type === 'drawing' ? (
-      <div
-        key={item.name}
-        draggable
-        onClick={e => this.handlers.onDrawingItem(item)}
-        className="rde-editor-items-item"
-        style={{ justifyContent: this.state.collapse ? 'center' : null }}
-      >
-        <span className="rde-editor-items-item-icon">
-          <Icon name={item.icon.name} prefix={item.icon.prefix} style={item.icon.style} />
-        </span>
-        {this.state.collapse ? null : <div className="rde-editor-items-item-text">{item.name}</div>}
-      </div>
-    ) : (
-      <div
-        key={item.name}
-        draggable
-        onClick={e => this.handlers.onAddItem(item, centered)}
-        onDragStart={e => this.events.onDragStart(e, item)}
-        onDragEnd={e => this.events.onDragEnd(e, item)}
-        className="rde-editor-items-item"
-        style={{ justifyContent: this.state.collapse ? 'center' : null }}
-      >
-        <span className="rde-editor-items-item-icon">
-          <Icon name={item.icon.name} prefix={item.icon.prefix} style={item.icon.style} />
-        </span>
-        {this.state.collapse ? null : <div className="rde-editor-items-item-text">{item.name}</div>}
-      </div>
-    );
+  renderItem = (item, centered) => (
+    <div
+      key={item.name}
+      draggable
+      onClick={e => this.handlers.onAddItem(item, centered)}
+      onDragStart={e => this.events.onDragStart(e, item)}
+      onDragEnd={e => this.events.onDragEnd(e, item)}
+      className={classnames('rde-editor-items-item', {
+        'rde-editor-items-item-image': item.type === 'image',
+      })}
+      style={{ justifyContent: this.state.collapse ? 'center' : null }}
+    >
+      {item.type === 'image' ? (
+        <div className="rde-editor-items-item-thumbnail">
+          <img src={item?.option?.src} />
+        </div>
+      ) : (
+        <>
+          <span className="rde-editor-items-item-icon">
+            <Icon name={item.icon.name} prefix={item.icon.prefix} style={item.icon.style} />
+          </span>
+          {this.state.collapse ? null : (
+            <div className="rde-editor-items-item-text">{item.name}</div>
+          )}
+        </>
+      )}
+    </div>
+  );
 
   render() {
     const { descriptors } = this.props;
@@ -296,7 +302,7 @@ class ImageMapItems extends Component {
     });
     return (
       <div className={className}>
-        <FlexBox flex="1" flexDirection="column" style={{ height: '100%' }}>
+        <FlexBox flex="1" flexDirection="column" style={{ height: '100%', background: 'white' }}>
           <Scrollbar>
             <FlexBox flex="1" style={{ overflowY: 'hidden' }}>
               {(textSearch.length && this.renderItems(filteredDescriptors)) ||
@@ -313,11 +319,17 @@ class ImageMapItems extends Component {
                   <Collapse
                     style={{ width: '100%' }}
                     bordered={false}
-                    activeKey={activeKey.length ? activeKey : Object.keys(descriptors)}
+                    defaultActiveKey={Object.keys(descriptors)?.[0]}
                     onChange={this.handlers.onChangeActiveKey}
+                    accordion
                   >
                     {Object.keys(descriptors).map(key => (
-                      <Collapse.Panel key={key} header={key} showArrow={!collapse}>
+                      <Collapse.Panel
+                        key={key}
+                        header={key}
+                        style={{ borderBottomColor: '#f1f1f1', padding: 0 }}
+                        showArrow
+                      >
                         {this.renderItems(descriptors[key])}
                       </Collapse.Panel>
                     ))}
