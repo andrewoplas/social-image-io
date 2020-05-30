@@ -799,6 +799,7 @@ class Handler implements HandlerOptions {
     const createdObj = new fabric.Image(image, {
       ...defaultOption,
       ...otherOption,
+      crossOrigin: 'anonymous',
     }) as FabricImage;
     createdObj.set({
       filters: this.imageHandler.createFilters(filters),
@@ -1836,8 +1837,11 @@ class Handler implements HandlerOptions {
    * Save canvas as image
    * @param {string} [option={ name: 'New Image', format: 'png', quality: 1 }]
    */
-  public saveCanvasImage = (option = { name: 'New Image', format: 'png', quality: 1 }) => {
-    const dataUrl = this.canvas.toDataURL(option);
+  public saveCanvasImage = (
+    option = { name: 'New Image', format: 'png', quality: 1 },
+    canvasContentOnly = false,
+  ) => {
+    const dataUrl = canvasContentOnly ? this.getCanvasUri() : this.canvas.toDataURL(option);
     if (dataUrl) {
       const anchorEl = document.createElement('a');
       anchorEl.href = dataUrl;
@@ -1846,6 +1850,34 @@ class Handler implements HandlerOptions {
       anchorEl.click();
       anchorEl.remove();
     }
+  };
+
+  /**
+   * Get URI of Canvas only
+   * @param {string} [option={ name: 'New Image', format: 'png', quality: 1 }]
+   */
+  getCanvasUri = () => {
+    // Make a new group
+    const fabricGroup = new fabric.Group();
+    const { canvas } = this;
+
+    // Ensure originX/Y 'center' is being used, as text uses left/top by default.
+    fabricGroup.set({ originX: 'center', originY: 'center' });
+
+    // Put canvas things in new group
+    for (let i = 0; i < canvas.getObjects().length; i += 1) {
+      const type = canvas.item(i).get('type');
+      const id = canvas.item(i).get('id');
+      if ((type === 'image' && !id.startsWith('slide')) || type === 'textbox') {
+        const clone = fabric.util.object.clone(canvas.item(i));
+        fabricGroup.addWithUpdate(clone).setCoords();
+      }
+    }
+
+    return fabricGroup.toDataURL({
+      format: 'png',
+      quality: 1,
+    });
   };
 }
 

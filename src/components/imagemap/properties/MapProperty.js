@@ -35,7 +35,7 @@ export default {
             initialValue: data.slides || 0,
           })(<InputNumber />)}
         </Form.Item>
-        <Form.Item label={i18n.t('common.layout')} colon={false}>
+        {/* <Form.Item label={i18n.t('common.layout')} colon={false}>
           {getFieldDecorator('layout', {
             initialValue: layout,
           })(
@@ -45,7 +45,7 @@ export default {
               <Radio.Button value="fullscreen">{i18n.t('common.fullscreen')}</Radio.Button>
             </Radio.Group>,
           )}
-        </Form.Item>
+        </Form.Item> */}
         {layout === 'fixed' ? (
           <React.Fragment>
             <Row>

@@ -12,6 +12,8 @@ class ImageMapFooterToolbar extends Component {
     onChangePreview: PropTypes.func,
     zoomRatio: PropTypes.number,
     onSaveImage: PropTypes.func,
+    onApply: PropTypes.func,
+    isApplying: PropTypes.bool,
   };
 
   state = {
@@ -78,7 +80,7 @@ class ImageMapFooterToolbar extends Component {
   };
 
   render() {
-    const { canvasRef, zoomRatio, onChangePreview, onSaveImage } = this.props;
+    const { canvasRef, zoomRatio, onChangePreview, onSaveImage, onApply, isApplying } = this.props;
     const { interactionMode } = this.state;
     const { selection, grab } = this.handlers;
     if (!canvasRef) {
@@ -145,6 +147,16 @@ class ImageMapFooterToolbar extends Component {
           </Button.Group>
         </div>
         <div className="rde-editor-footer-toolbar-preview">
+          <Button
+            type="primary"
+            icon="check"
+            onClick={onApply}
+            style={{ marginRight: 5 }}
+            loading={isApplying}
+          >
+            Apply
+          </Button>
+
           <Button type="primary" icon="eye" onClick={() => onChangePreview(true)}>
             Preview
           </Button>

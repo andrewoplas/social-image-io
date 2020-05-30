@@ -5,10 +5,10 @@ import { WorkareaLayout, WorkareaObject } from '../utils';
 import { VideoObject } from '../objects/Video';
 
 const defaultWorkareaOption: Partial<WorkareaObject> = {
-  width: 600,
-  height: 400,
-  workareaWidth: 600,
-  workareaHeight: 400,
+  width: 1080,
+  height: 1080,
+  workareaWidth: 1080,
+  workareaHeight: 1080,
   lockScalingX: true,
   lockScalingY: true,
   scaleX: 1,
@@ -20,7 +20,7 @@ const defaultWorkareaOption: Partial<WorkareaObject> = {
   lockMovementX: true,
   lockMovementY: true,
   hoverCursor: 'default',
-  name: '',
+  name: 'New Canvas',
   id: 'workarea',
   type: 'image',
   layout: 'fixed', // fixed, responsive, fullscreen
@@ -266,68 +266,72 @@ class WorkareaHandler {
       return;
     }
     const imageFromUrl = (src: string) => {
-      fabric.Image.fromURL(src, (img: any) => {
-        let width = canvas.getWidth();
-        let height = canvas.getHeight();
-        if (workarea.layout === 'fixed') {
-          width = workarea.width * workarea.scaleX;
-          height = workarea.height * workarea.scaleY;
-        }
-        let scaleX = 1;
-        let scaleY = 1;
-        if (img._element) {
-          scaleX = width / img.width;
-          scaleY = height / img.height;
-          img.set({
-            originX: 'left',
-            originY: 'top',
-            scaleX,
-            scaleY,
-          });
-          workarea.set({
-            ...img,
-            isElement: true,
-            selectable: false,
-          });
-        } else {
-          workarea.setElement(new Image());
-          workarea.set({
-            width,
-            height,
-            scaleX,
-            scaleY,
-            isElement: false,
-            selectable: false,
-          });
-        }
-        canvas.centerObject(workarea);
-        if (editable && !loaded) {
-          const { layout } = workarea;
-          canvas.getObjects().forEach(obj => {
-            const { id, player } = obj as VideoObject;
-            if (id !== 'workarea') {
-              scaleX = layout !== 'fullscreen' ? 1 : scaleX;
-              scaleY = layout !== 'fullscreen' ? 1 : scaleY;
-              const objWidth = obj.width * scaleX;
-              const objHeight = obj.height * scaleY;
-              const el = this.handler.elementHandler.findById(id);
-              this.handler.elementHandler.setSize(el, obj);
-              if (player) {
-                player.setPlayerSize(objWidth, objHeight);
+      fabric.Image.fromURL(
+        src,
+        (img: any) => {
+          let width = canvas.getWidth();
+          let height = canvas.getHeight();
+          if (workarea.layout === 'fixed') {
+            width = workarea.width * workarea.scaleX;
+            height = workarea.height * workarea.scaleY;
+          }
+          let scaleX = 1;
+          let scaleY = 1;
+          if (img._element) {
+            scaleX = width / img.width;
+            scaleY = height / img.height;
+            img.set({
+              originX: 'left',
+              originY: 'top',
+              scaleX,
+              scaleY,
+            });
+            workarea.set({
+              ...img,
+              isElement: true,
+              selectable: false,
+            });
+          } else {
+            workarea.setElement(new Image());
+            workarea.set({
+              width,
+              height,
+              scaleX,
+              scaleY,
+              isElement: false,
+              selectable: false,
+            });
+          }
+          canvas.centerObject(workarea);
+          if (editable && !loaded) {
+            const { layout } = workarea;
+            canvas.getObjects().forEach(obj => {
+              const { id, player } = obj as VideoObject;
+              if (id !== 'workarea') {
+                scaleX = layout !== 'fullscreen' ? 1 : scaleX;
+                scaleY = layout !== 'fullscreen' ? 1 : scaleY;
+                const objWidth = obj.width * scaleX;
+                const objHeight = obj.height * scaleY;
+                const el = this.handler.elementHandler.findById(id);
+                this.handler.elementHandler.setSize(el, obj);
+                if (player) {
+                  player.setPlayerSize(objWidth, objHeight);
+                }
+                obj.set({
+                  scaleX,
+                  scaleY,
+                });
+                obj.setCoords();
               }
-              obj.set({
-                scaleX,
-                scaleY,
-              });
-              obj.setCoords();
-            }
-          });
-        }
-        const center = canvas.getCenter();
-        canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
-        this.handler.zoomHandler.zoomToPoint(new fabric.Point(center.left, center.top), 1);
-        canvas.renderAll();
-      });
+            });
+          }
+          const center = canvas.getCenter();
+          canvas.setViewportTransform([1, 0, 0, 1, 0, 0]);
+          this.handler.zoomHandler.zoomToPoint(new fabric.Point(center.left, center.top), 1);
+          canvas.renderAll();
+        },
+        { crossOrigin: 'Anonymous' },
+      );
     };
     if (!source) {
       workarea.set({

@@ -14,7 +14,7 @@ export default {
     const imageLoadType = data.imageLoadType || 'file';
     return (
       <React.Fragment>
-        <Form.Item label={i18n.t('imagemap.image.image-load-type')} colon={false}>
+        {/* <Form.Item label={i18n.t('imagemap.image.image-load-type')} colon={false}>
           {getFieldDecorator('imageLoadType', {
             initialValue: imageLoadType,
           })(
@@ -23,26 +23,26 @@ export default {
               <Radio.Button value="src">{i18n.t('imagemap.image.image-url')}</Radio.Button>
             </Radio.Group>,
           )}
+        </Form.Item> */}
+        {/* {imageLoadType === 'file' ? ( */}
+        <Form.Item label={i18n.t('common.file')} colon={false}>
+          {getFieldDecorator('file', {
+            rules: [
+              {
+                required: true,
+                message: i18n.t('validation.enter-property', { arg: i18n.t('common.file') }),
+              },
+            ],
+            initialValue: data.file,
+          })(<FileUpload accept="image/*" />)}
         </Form.Item>
-        {imageLoadType === 'file' ? (
-          <Form.Item label={i18n.t('common.file')} colon={false}>
-            {getFieldDecorator('file', {
-              rules: [
-                {
-                  required: true,
-                  message: i18n.t('validation.enter-property', { arg: i18n.t('common.file') }),
-                },
-              ],
-              initialValue: data.file,
-            })(<FileUpload accept="image/*" />)}
-          </Form.Item>
-        ) : (
+        {/* ) : (
           <Form.Item>
             {getFieldDecorator('src', {
               initialValue: data.src,
             })(<UrlModal form={form} />)}
           </Form.Item>
-        )}
+        )} */}
       </React.Fragment>
     );
   },

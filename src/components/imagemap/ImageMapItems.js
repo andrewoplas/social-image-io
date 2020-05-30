@@ -8,7 +8,7 @@
  */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Collapse, notification, Input, message } from 'antd';
+import { Collapse, notification, Input, message, Modal, Form, Radio } from 'antd';
 import { v4 } from 'uuid';
 import classnames from 'classnames';
 import i18n from 'i18next';
@@ -17,7 +17,9 @@ import { FlexBox } from '../flex';
 import Icon from '../icon/Icon';
 import Scrollbar from '../common/Scrollbar';
 import CommonButton from '../common/CommonButton';
-import { SVGModal } from '../common';
+import { SVGModal, FileUpload, UrlModal } from '../common';
+import ImageProperty from './properties/ImageProperty';
+import ImageUploadPreview from '../common/ImageUploadPreview';
 
 notification.config({
   top: 80,
@@ -36,6 +38,11 @@ class ImageMapItems extends Component {
     descriptors: {},
     filteredDescriptors: [],
     svgModalVisible: false,
+    imageUploadModalVisible: false,
+    imageLoadType: 'file',
+    imageFile: null,
+    imageFileBase64: null,
+    imageSrc: '',
   };
 
   componentDidMount() {
@@ -70,7 +77,18 @@ class ImageMapItems extends Component {
       return true;
     } else if (this.state.svgModalVisible !== nextState.svgModalVisible) {
       return true;
+    } else if (this.state.imageUploadModalVisible !== nextState.imageUploadModalVisible) {
+      return true;
+    } else if (this.state.imageLoadType !== nextState.imageLoadType) {
+      return true;
+    } else if (this.state.imageFile !== nextState.imageFile) {
+      return true;
+    } else if (this.state.imageSrc !== nextState.imageSrc) {
+      return true;
+    } else if (this.state.imageFileBase64 !== nextState.imageFileBase64) {
+      return true;
     }
+
     return false;
   }
 
@@ -124,6 +142,11 @@ class ImageMapItems extends Component {
       const option = Object.assign({}, item.option, { id });
       if (item.option.type === 'svg' && item.type === 'default') {
         this.handlers.onSVGModalVisible(item.option);
+        return;
+      }
+
+      if (item.option.type === 'modal-button') {
+        this.setState({ imageUploadModalVisible: true });
         return;
       }
 
@@ -287,8 +310,52 @@ class ImageMapItems extends Component {
     </div>
   );
 
+  onChangeUpload = (key, value) => {
+    this.setState({ [key]: value });
+
+    if (key === 'imageFile') {
+      const reader = new FileReader();
+      reader.readAsDataURL(value);
+      reader.onload = () => this.setState({ imageFileBase64: reader.result });
+    }
+  };
+
+  removeUploadedFile = () => {
+    this.setState({
+      imageFile: null,
+      imageFileBase64: null,
+    });
+  };
+
+  onOk = () => {
+    const { imageLoadType, imageFile, imageSrc } = this.state;
+
+    if ((imageLoadType === 'file' && !imageFile) || (imageLoadType === 'src' && !imageSrc)) {
+      message.error('No image to upload');
+      return;
+    }
+
+    this.handlers.onAddItem({
+      name: 'Image',
+      type: 'image',
+      option: {
+        type: 'image',
+        name: 'New image',
+        [imageLoadType]: imageLoadType === 'file' ? imageFile : imageSrc,
+      },
+    });
+
+    this.setState({
+      imageLoadType: 'file',
+      imageFile: null,
+      imageFileBase64: null,
+      imageSrc: '',
+      imageUploadModalVisible: false,
+    });
+  };
+
   render() {
-    const { descriptors } = this.props;
+    const { descriptors, form, canvasRef } = this.props;
     const {
       collapse,
       textSearch,
@@ -296,6 +363,11 @@ class ImageMapItems extends Component {
       activeKey,
       svgModalVisible,
       svgOption,
+      imageUploadModalVisible,
+      imageLoadType,
+      imageFile,
+      imageSrc,
+      imageFileBase64,
     } = this.state;
     const className = classnames('rde-editor-items', {
       minimize: collapse,
@@ -344,6 +416,45 @@ class ImageMapItems extends Component {
           onCancel={this.handlers.onSVGModalVisible}
           option={svgOption}
         />
+        <Modal
+          title="Upload Image"
+          visible={imageUploadModalVisible}
+          onCancel={() => this.setState({ imageUploadModalVisible: false })}
+          onOk={this.onOk}
+          closable
+        >
+          <React.Fragment>
+            {/* <Form.Item label={i18n.t('imagemap.image.image-load-type')} colon={false}>
+              <Radio.Group
+                size="small"
+                onChange={e => this.onChangeUpload('imageLoadType', e.target.value)}
+                defaultValue={imageLoadType}
+              >
+                <Radio.Button value="file">{i18n.t('imagemap.image.file-upload')}</Radio.Button>
+                <Radio.Button value="src">{i18n.t('imagemap.image.image-url')}</Radio.Button>
+              </Radio.Group>
+            </Form.Item> */}
+            {/* {imageLoadType === 'file' ? ( */}
+            <Form.Item label={i18n.t('common.file')} colon={false}>
+              {imageFileBase64 ? (
+                <ImageUploadPreview
+                  imageBase64={imageFileBase64}
+                  onRemove={this.removeUploadedFile}
+                />
+              ) : (
+                <FileUpload
+                  accept="image/*"
+                  onChange={file => this.onChangeUpload('imageFile', file)}
+                />
+              )}
+            </Form.Item>
+            {/* ) : (
+              <Form.Item label={i18n.t('common.url')} colon={false}>
+                <Input onChange={e => this.onChangeUpload('imageSrc', e.target.value)} />
+              </Form.Item>
+            )} */}
+          </React.Fragment>
+        </Modal>
       </div>
     );
   }

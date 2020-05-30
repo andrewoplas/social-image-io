@@ -1,8 +1,8 @@
 /* eslint-disable no-alert */
-import { Badge, Button, Menu, Popconfirm } from 'antd';
+import { Badge, Button, Menu, Popconfirm, message } from 'antd';
 import { fabric } from 'fabric';
-import Jimp from 'jimp';
 import i18n from 'i18next';
+import Jimp from 'jimp';
 import debounce from 'lodash/debounce';
 import React, { Component } from 'react';
 import { v4 } from 'uuid';
@@ -79,6 +79,17 @@ const defaultOption = {
   },
 };
 
+const changedKeyToUpdateSlides = [
+  'width',
+  'height',
+  'src',
+  'file',
+  'shadow',
+  'fontWeight',
+  'fontStyle',
+  'textAlign',
+];
+
 class ImageMapEditor extends Component {
   state = {
     selectedItem: null,
@@ -93,6 +104,7 @@ class ImageMapEditor extends Component {
     descriptors: {},
     objects: undefined,
     slides: [],
+    isApplying: false,
   };
 
   componentDidMount() {
@@ -181,6 +193,14 @@ class ImageMapEditor extends Component {
         this.canvasHandlers.onChangeWokarea(changedKey, changedValue, allValues.workarea);
         return;
       }
+
+      if (
+        changedKeyToUpdateSlides.includes(changedKey) &&
+        this.canvasRef.handler.workarea.slides > 0
+      ) {
+        this.updateSlides(this.canvasRef.handler.workarea.slides);
+      }
+
       if (changedKey === 'width' || changedKey === 'height') {
         this.canvasRef.handler.scaleToResize(allValues.width, allValues.height);
         return;
@@ -389,77 +409,7 @@ class ImageMapEditor extends Component {
       }
       if (changedKey === 'slides') {
         this.canvasRef.handler.workarea.set(changedKey, changedValue);
-        this.state.slides.forEach(slideId => this.canvasRef.handler.removeById(slideId));
-
-        // Set coordinates and size
-        const { workarea } = this.canvasRef.handler;
-        const slideSpacing = 15;
-        const slideWidth = workarea.width / changedValue;
-
-        // Create element option
-        const option = {
-          type: 'image',
-          width: slideWidth,
-          height: workarea.height,
-          top: workarea.top + workarea.height + 30,
-          left: 0,
-          name: 'slide',
-          isSlide: true,
-        };
-
-        // Get canvas image in URI
-        const canvasImageUri = this.getCanvasUri();
-        const buf = Buffer.from(canvasImageUri.split(',')[1], 'base64');
-
-        // workarea's left - half of excess on the right because of spacing; to center slide series
-        // -1 for not including the first slide, no spacing in first slide
-        const workareaLeft = workarea.left - (slideSpacing * (changedValue - 1)) / 2;
-        Jimp.read(buf, (err, image) => {
-          if (!err) {
-            const base64Promises = [];
-
-            // Get base 64 async
-            for (let i = 0; i < changedValue; i++) {
-              const imageCloned = image.clone();
-              base64Promises.push(
-                imageCloned
-                  .crop(slideWidth * i, 0, slideWidth, workarea.height)
-                  .quality(100)
-                  .getBase64Async(Jimp.MIME_JPEG),
-              );
-            }
-
-            // Get all base 64
-            Promise.all(base64Promises).then(data => {
-              if (data?.length === changedValue) {
-                const slideIds = [];
-
-                // Store slides
-                for (let i = 0; i < changedValue; i += 1) {
-                  const id = `slide-${v4()}`;
-                  slideIds.push(id);
-
-                  this.canvasRef.handler.add(
-                    {
-                      ...option,
-                      id,
-                      src: data[i],
-                      left: workareaLeft + slideWidth * i + slideSpacing * i,
-                    },
-                    true /* centered */,
-                    false /* loaded */,
-                    false /* transaction */,
-                    true /* isSlide */,
-                  );
-                }
-
-                this.setState({ slides: slideIds });
-              }
-            });
-          } else {
-            alert('An error occurred!');
-          }
-        });
+        this.updateSlides(changedValue);
       }
 
       this.canvasRef.handler.workarea.set(changedKey, changedValue);
@@ -588,28 +538,100 @@ class ImageMapEditor extends Component {
     },
   };
 
-  getCanvasUri = () => {
-    // Make a new group
-    const fabricGroup = new fabric.Group();
-    const { canvas } = this.canvasRef;
+  updateSlides = numberOfSlides => {
+    this.setState({ isApplying: true });
+    let { slides = [] } = this.state;
 
-    // Ensure originX/Y 'center' is being used, as text uses left/top by default.
-    fabricGroup.set({ originX: 'center', originY: 'center' });
-
-    // Put canvas things in new group
-    // eslint-disable-next-line no-plusplus
-    for (let i = 0; i < canvas.getObjects().length; i++) {
-      const type = canvas.item(i).get('type');
-      const id = canvas.item(i).get('id');
-      if (type === 'image' || type === 'textbox' || !id.startsWith('slide')) {
-        const clone = fabric.util.object.clone(canvas.item(i));
-        fabricGroup.addWithUpdate(clone).setCoords();
+    // Create / Delete new slide
+    const difference = numberOfSlides - slides.length;
+    if (difference < 0) {
+      // Remove
+      slides
+        .slice(numberOfSlides)
+        .map(toBeRemovedSlideId => this.canvasRef.handler.removeById(toBeRemovedSlideId));
+      slides = slides.slice(0, numberOfSlides);
+    } else if (difference > 0) {
+      // Add
+      for (let i = 0; i < difference; i += 1) {
+        slides.push(`slide-${v4()}`);
       }
     }
 
-    return fabricGroup.toDataURL({
-      format: 'png',
-      quality: 1,
+    // Set coordinates and size
+    const { workarea } = this.canvasRef.handler;
+    const slideSpacing = 15;
+    const slideWidth = workarea.width / numberOfSlides;
+
+    // Create element option
+    const option = {
+      type: 'image',
+      width: slideWidth,
+      height: workarea.height,
+      top: workarea.top + workarea.height + 30,
+      left: 0,
+      name: 'slide',
+      isSlide: true,
+    };
+
+    // Get canvas image in URI
+    const canvasImageUri = this.canvasRef.handler.getCanvasUri();
+    const buf = Buffer.from(canvasImageUri.split(',')[1], 'base64');
+
+    // workarea's left - half of excess on the right because of spacing; to center slide series
+    // -1 for not including the first slide, no spacing in first slide
+    const workareaLeft = workarea.left - (slideSpacing * (numberOfSlides - 1)) / 2;
+    const getBase64SplitCallback = srcList => {
+      slides.forEach((slideId, i) => {
+        const object = this.canvasRef.handler.findById(slideId);
+        const left = workareaLeft + slideWidth * i + slideSpacing * i;
+
+        if (object) {
+          this.canvasRef.handler.removeById(slideId);
+        }
+
+        this.insertSlide(option, slideId, srcList[i], left);
+      });
+
+      this.setState({ slides, isApplying: false });
+    };
+
+    this.getBase64Split(buf, numberOfSlides, slideWidth, workarea.height, getBase64SplitCallback);
+  };
+
+  insertSlide = (option, id, src, left) => {
+    this.canvasRef.handler.add(
+      { ...option, id, src, left },
+      true /* centered */,
+      false /* loaded */,
+      false /* transaction */,
+      true /* isSlide */,
+    );
+  };
+
+  getBase64Split = (buf, numberOfSlides, slideWidth, slideHeight, callback) => {
+    Jimp.read(buf, (err, image) => {
+      if (!err) {
+        const base64Promises = [];
+
+        // Get base 64 async
+        for (let i = 0; i < numberOfSlides; i += 1) {
+          const imageCloned = image.clone();
+          base64Promises.push(
+            imageCloned
+              .crop(slideWidth * i, 0, slideWidth, slideHeight)
+              .quality(100)
+              .getBase64Async(Jimp.MIME_JPEG),
+          );
+        }
+
+        // Get all base 64
+        Promise.all(base64Promises).then(srcList => {
+          console.log(srcList);
+          callback(srcList);
+        });
+      } else {
+        alert('An error occurred!');
+      }
     });
   };
 
@@ -732,9 +754,19 @@ class ImageMapEditor extends Component {
       });
     },
     onSaveImage: () => {
-      this.canvasRef.handler.saveCanvasImage({
-        name: this.canvasRef.handler.workarea.name,
-      });
+      this.canvasRef.handler.saveCanvasImage(
+        {
+          name: this.canvasRef.handler.workarea.name,
+        },
+        true,
+      );
+    },
+    onApply: () => {
+      if (this.canvasRef.handler.workarea.slides > 0)
+        this.updateSlides(this.canvasRef.handler.workarea.slides);
+      else {
+        message.warning('No slides yet. Please add a slide first.');
+      }
     },
   };
 
@@ -776,6 +808,7 @@ class ImageMapEditor extends Component {
       editing,
       descriptors,
       objects,
+      isApplying,
     } = this.state;
     const {
       onAdd,
@@ -788,7 +821,6 @@ class ImageMapEditor extends Component {
       onClick,
       onContext,
       onTransaction,
-      onLoad,
     } = this.canvasHandlers;
     const {
       onChangePreview,
@@ -798,6 +830,7 @@ class ImageMapEditor extends Component {
       onChangeStyles,
       onChangeDataSources,
       onSaveImage,
+      onApply,
     } = this.handlers;
     const action = (
       <React.Fragment>
@@ -847,12 +880,13 @@ class ImageMapEditor extends Component {
       </React.Fragment>
     );
 
-    const titleContent = (
-      <React.Fragment>
-        <span>{i18n.t('imagemap.imagemap-editor')}</span>
-      </React.Fragment>
-    );
-    const title = <ImageMapTitle title={titleContent} action={action} />;
+    // const titleContent = (
+    //   <React.Fragment>
+    //     <span>{i18n.t('imagemap.imagemap-editor')}</span>
+    //   </React.Fragment>
+    // );
+
+    // const title = <ImageMapTitle title={titleContent} action={action} />;
 
     const content = (
       <div className="rde-editor">
@@ -905,6 +939,8 @@ class ImageMapEditor extends Component {
               onChangePreview={onChangePreview}
               zoomRatio={zoomRatio}
               onSaveImage={onSaveImage}
+              onApply={onApply}
+              isApplying={isApplying}
             />
           </div>
         </div>

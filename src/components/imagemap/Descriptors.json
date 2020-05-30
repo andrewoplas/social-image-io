@@ -1,4 +1,36 @@
 {
+  "Tools": [
+    {
+      "name": "Text",
+      "description": "",
+      "type": "text",
+      "icon": {
+        "prefix": "fas",
+        "name": "font"
+      },
+      "option": {
+        "type": "textbox",
+        "text": "Text Here",
+        "width": 60,
+        "height": 30,
+        "fontSize": 32,
+        "name": "New text"
+      }
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "type": "modal-button",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "modal-button",
+        "modal-id": "upload-image"
+      }
+    }
+  ],
   "My Images": [
     {
       "name": "Image",
@@ -113,25 +145,6 @@
         "type": "image",
         "name": "New image",
         "src": "./images/sample/test_image.jpg"
-      }
-    }
-  ],
-  "Templates": [
-    {
-      "name": "Text",
-      "description": "",
-      "type": "text",
-      "icon": {
-        "prefix": "fas",
-        "name": "font"
-      },
-      "option": {
-        "type": "textbox",
-        "text": "Text Here",
-        "width": 60,
-        "height": 30,
-        "fontSize": 32,
-        "name": "New text"
       }
     }
   ]

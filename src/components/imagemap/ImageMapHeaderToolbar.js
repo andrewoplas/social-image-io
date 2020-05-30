@@ -63,7 +63,7 @@ class ImageMapHeaderToolbar extends Component {
             tooltipTitle={i18n.t('action.send-to-back')}
           />
         </FlexItem>
-        <FlexItem className="rde-canvas-toolbar rde-canvas-toolbar-alignment">
+        {/* <FlexItem className="rde-canvas-toolbar rde-canvas-toolbar-alignment">
           <CommonButton
             className="rde-action-btn"
             shape="circle"
@@ -88,7 +88,7 @@ class ImageMapHeaderToolbar extends Component {
             icon="align-right"
             tooltipTitle={i18n.t('action.align-right')}
           />
-        </FlexItem>
+        </FlexItem> */}
         <FlexItem className="rde-canvas-toolbar rde-canvas-toolbar-group">
           <CommonButton
             className="rde-action-btn"

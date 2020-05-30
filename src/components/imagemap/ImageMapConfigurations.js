@@ -1,7 +1,7 @@
 /**
  * Right sidebar
  */
-import { Tabs } from 'antd';
+import { Tabs, Typography } from 'antd';
 import classnames from 'classnames';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
@@ -57,10 +57,26 @@ class ImageMapConfigurations extends Component {
           onChange={onChangeTab}
           tabBarStyle={{ marginTop: 60 }}
         >
-          <Tabs.TabPane tab={<Icon name="cog" />} key="map">
+          <Tabs.TabPane
+            tab={
+              <>
+                <Icon name="cog" />
+                <span style={{ display: 'block', fontSize: '10px' }}>Canvas</span>
+              </>
+            }
+            key="map"
+          >
             <MapProperties onChange={onChange} canvasRef={canvasRef} />
           </Tabs.TabPane>
-          <Tabs.TabPane tab={<Icon name="cogs" />} key="node">
+          <Tabs.TabPane
+            tab={
+              <>
+                <Icon name="sliders-h" />
+                <span style={{ display: 'block', fontSize: '10px' }}>Element</span>
+              </>
+            }
+            key="node"
+          >
             <NodeProperties onChange={onChange} selectedItem={selectedItem} canvasRef={canvasRef} />
           </Tabs.TabPane>
         </Tabs>
