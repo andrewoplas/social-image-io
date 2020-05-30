@@ -1859,20 +1859,20 @@ class Handler implements HandlerOptions {
   getCanvasUri = () => {
     // Make a new group
     const fabricGroup = new fabric.Group();
-    const { canvas } = this;
 
     // Ensure originX/Y 'center' is being used, as text uses left/top by default.
     fabricGroup.set({ originX: 'center', originY: 'center' });
 
     // Put canvas things in new group
-    for (let i = 0; i < canvas.getObjects().length; i += 1) {
-      const type = canvas.item(i).get('type');
-      const id = canvas.item(i).get('id');
+    const canvasObjects = this.getObjects();
+    canvasObjects.forEach(object => {
+      const { id, type } = object;
+
       if ((type === 'image' && !id.startsWith('slide')) || type === 'textbox') {
-        const clone = fabric.util.object.clone(canvas.item(i));
+        const clone = fabric.util.object.clone(object);
         fabricGroup.addWithUpdate(clone).setCoords();
       }
-    }
+    });
 
     return fabricGroup.toDataURL({
       format: 'png',
