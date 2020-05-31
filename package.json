@@ -72,8 +72,13 @@
     "react-helmet": "^5.2.0",
     "react-hot-loader": "^4.12.20",
     "react-json-view": "^1.19.1",
+    "redux": "^4.0.5",
+    "redux-actions": "^2.6.5",
+    "redux-saga": "^1.1.3",
+    "reselect": "^4.0.0",
     "resize-observer-polyfill": "^1.5.1",
     "store": "^2.0.12",
+    "unsplash-js": "^6.0.0",
     "uuid": "^7.0.3",
     "warning": "^4.0.3"
   },

@@ -12,7 +12,9 @@ import { Collapse, notification, Input, message, Modal, Form, Radio } from 'antd
 import { v4 } from 'uuid';
 import classnames from 'classnames';
 import i18n from 'i18next';
+import Unsplash, { toJson } from 'unsplash-js';
 
+import { UNSPLASH } from '../../global/config';
 import { FlexBox } from '../flex';
 import Icon from '../icon/Icon';
 import Scrollbar from '../common/Scrollbar';
@@ -20,10 +22,16 @@ import CommonButton from '../common/CommonButton';
 import { SVGModal, FileUpload, UrlModal } from '../common';
 import ImageProperty from './properties/ImageProperty';
 import ImageUploadPreview from '../common/ImageUploadPreview';
+import ImageUploadModal from './components/ImageUploadModal';
+import UnsplashModal from './components/UnsplashModal';
 
 notification.config({
   top: 80,
   duration: 2,
+});
+
+const unsplashService = new Unsplash({
+  accessKey: UNSPLASH.ACCESS_KEY,
 });
 
 class ImageMapItems extends Component {
@@ -38,11 +46,18 @@ class ImageMapItems extends Component {
     descriptors: {},
     filteredDescriptors: [],
     svgModalVisible: false,
+
     imageUploadModalVisible: false,
     imageLoadType: 'file',
     imageFile: null,
     imageFileBase64: null,
     imageSrc: '',
+
+    unsplashModalVisible: false,
+    unsplashModalLoading: false,
+    unsplashImages: [],
+    unsplashSelectedImageId: null,
+    unsplashSelectedImageSrc: null,
   };
 
   componentDidMount() {
@@ -86,6 +101,16 @@ class ImageMapItems extends Component {
     } else if (this.state.imageSrc !== nextState.imageSrc) {
       return true;
     } else if (this.state.imageFileBase64 !== nextState.imageFileBase64) {
+      return true;
+    } else if (this.state.unsplashModalVisible !== nextState.unsplashModalVisible) {
+      return true;
+    } else if (this.state.unsplashModalLoading !== nextState.unsplashModalLoading) {
+      return true;
+    } else if (this.state.unsplashImages !== nextState.unsplashImages) {
+      return true;
+    } else if (this.state.unsplashSelectedImageId !== nextState.unsplashSelectedImageId) {
+      return true;
+    } else if (this.state.unsplashSelectedImageSrc !== nextState.unsplashSelectedImageSrc) {
       return true;
     }
 
@@ -139,14 +164,19 @@ class ImageMapItems extends Component {
         return;
       }
       const id = v4();
-      const option = Object.assign({}, item.option, { id });
-      if (item.option.type === 'svg' && item.type === 'default') {
+      const option = Object.assign({}, item?.option, { id });
+      if (item?.option?.type === 'svg' && item.type === 'default') {
         this.handlers.onSVGModalVisible(item.option);
         return;
       }
 
-      if (item.option.type === 'modal-button') {
+      if (item.type === 'modal-button' && item.modal === 'image-upload') {
         this.setState({ imageUploadModalVisible: true });
+        return;
+      }
+
+      if (item.type === 'modal-button' && item.modal === 'unsplash') {
+        this.setState({ unsplashModalVisible: true });
         return;
       }
 
@@ -198,9 +228,8 @@ class ImageMapItems extends Component {
         filteredDescriptors,
       });
     },
-    transformList: () => {
-      return Object.values(this.props.descriptors).reduce((prev, curr) => prev.concat(curr), []);
-    },
+    transformList: () =>
+      Object.values(this.props.descriptors).reduce((prev, curr) => prev.concat(curr), []),
     onSVGModalVisible: () => {
       this.setState(prevState => {
         return {
@@ -310,48 +339,104 @@ class ImageMapItems extends Component {
     </div>
   );
 
-  onChangeUpload = (key, value) => {
-    this.setState({ [key]: value });
+  imageUploadHandler = {
+    onOk: () => {
+      const { imageLoadType, imageFile, imageSrc } = this.state;
 
-    if (key === 'imageFile') {
-      const reader = new FileReader();
-      reader.readAsDataURL(value);
-      reader.onload = () => this.setState({ imageFileBase64: reader.result });
-    }
-  };
+      if ((imageLoadType === 'file' && !imageFile) || (imageLoadType === 'src' && !imageSrc)) {
+        message.error('No image to upload');
+        return;
+      }
 
-  removeUploadedFile = () => {
-    this.setState({
-      imageFile: null,
-      imageFileBase64: null,
-    });
-  };
-
-  onOk = () => {
-    const { imageLoadType, imageFile, imageSrc } = this.state;
-
-    if ((imageLoadType === 'file' && !imageFile) || (imageLoadType === 'src' && !imageSrc)) {
-      message.error('No image to upload');
-      return;
-    }
-
-    this.handlers.onAddItem({
-      name: 'Image',
-      type: 'image',
-      option: {
+      this.handlers.onAddItem({
+        name: 'Image',
         type: 'image',
-        name: 'New image',
-        [imageLoadType]: imageLoadType === 'file' ? imageFile : imageSrc,
-      },
-    });
+        option: {
+          type: 'image',
+          name: 'New image',
+          [imageLoadType]: imageLoadType === 'file' ? imageFile : imageSrc,
+        },
+      });
 
-    this.setState({
-      imageLoadType: 'file',
-      imageFile: null,
-      imageFileBase64: null,
-      imageSrc: '',
-      imageUploadModalVisible: false,
-    });
+      this.setState({
+        imageLoadType: 'file',
+        imageFile: null,
+        imageFileBase64: null,
+        imageSrc: '',
+        imageUploadModalVisible: false,
+      });
+    },
+    onCancel: () => this.setState({ imageUploadModalVisible: false }),
+    onChange: (key, value) => {
+      this.setState({ [key]: value });
+
+      if (key === 'imageFile') {
+        const reader = new FileReader();
+        reader.readAsDataURL(value);
+        reader.onload = () => this.setState({ imageFileBase64: reader.result });
+      }
+    },
+    onRemove: () => {
+      this.setState({
+        imageFile: null,
+        imageFileBase64: null,
+      });
+    },
+  };
+
+  unsplashHandler = {
+    onOk: () => {
+      if (this.state.unsplashSelectedImageSrc) {
+        this.handlers.onAddItem({
+          name: 'Image',
+          type: 'image',
+          option: {
+            type: 'image',
+            name: 'New image',
+            src: this.state.unsplashSelectedImageSrc,
+          },
+        });
+
+        this.setState({
+          unsplashModalVisible: false,
+          unsplashSelectedImageId: null,
+          unsplashSelectedImageSrc: null,
+        });
+      } else {
+        message.error('No image selected');
+      }
+    },
+    onCancel: () => this.setState({ unsplashModalVisible: false }),
+    onSearch: keyword => {
+      this.setState({ unsplashModalLoading: true });
+
+      unsplashService.search
+        .photos(keyword, 1, 10)
+        .then(toJson)
+        .then(data => {
+          this.setState(
+            {
+              unsplashImages: data?.results.map(result => ({
+                id: result?.id,
+                alt: result?.alt_description,
+                thumbnail: result?.urls?.thumb,
+                src: result?.urls?.regular,
+              })),
+            },
+            () => {
+              this.setState({ unsplashModalLoading: false });
+            },
+          );
+        });
+    },
+    onImageClick: (selectedImageId, selectedImageSrc) => {
+      this.setState(state => ({
+        unsplashSelectedImageSrc:
+          state.unsplashSelectedImageSrc === selectedImageSrc ? null : selectedImageSrc,
+        unsplashSelectedImageId:
+          state.unsplashSelectedImageId === selectedImageId ? null : selectedImageId,
+      }));
+    },
   };
 
   render() {
@@ -363,11 +448,14 @@ class ImageMapItems extends Component {
       activeKey,
       svgModalVisible,
       svgOption,
+
       imageUploadModalVisible,
-      imageLoadType,
-      imageFile,
-      imageSrc,
       imageFileBase64,
+
+      unsplashModalVisible,
+      unsplashModalLoading,
+      unsplashImages,
+      unsplashSelectedImageId,
     } = this.state;
     const className = classnames('rde-editor-items', {
       minimize: collapse,
@@ -416,45 +504,26 @@ class ImageMapItems extends Component {
           onCancel={this.handlers.onSVGModalVisible}
           option={svgOption}
         />
-        <Modal
-          title="Upload Image"
+
+        <ImageUploadModal
           visible={imageUploadModalVisible}
-          onCancel={() => this.setState({ imageUploadModalVisible: false })}
-          onOk={this.onOk}
-          closable
-        >
-          <React.Fragment>
-            {/* <Form.Item label={i18n.t('imagemap.image.image-load-type')} colon={false}>
-              <Radio.Group
-                size="small"
-                onChange={e => this.onChangeUpload('imageLoadType', e.target.value)}
-                defaultValue={imageLoadType}
-              >
-                <Radio.Button value="file">{i18n.t('imagemap.image.file-upload')}</Radio.Button>
-                <Radio.Button value="src">{i18n.t('imagemap.image.image-url')}</Radio.Button>
-              </Radio.Group>
-            </Form.Item> */}
-            {/* {imageLoadType === 'file' ? ( */}
-            <Form.Item label={i18n.t('common.file')} colon={false}>
-              {imageFileBase64 ? (
-                <ImageUploadPreview
-                  imageBase64={imageFileBase64}
-                  onRemove={this.removeUploadedFile}
-                />
-              ) : (
-                <FileUpload
-                  accept="image/*"
-                  onChange={file => this.onChangeUpload('imageFile', file)}
-                />
-              )}
-            </Form.Item>
-            {/* ) : (
-              <Form.Item label={i18n.t('common.url')} colon={false}>
-                <Input onChange={e => this.onChangeUpload('imageSrc', e.target.value)} />
-              </Form.Item>
-            )} */}
-          </React.Fragment>
-        </Modal>
+          imageFileBase64={imageFileBase64}
+          onRemove={this.imageUploadHandler.onRemove}
+          onCancel={this.imageUploadHandler.onCancel}
+          onOk={this.imageUploadHandler.onOk}
+          onChange={this.imageUploadHandler.onChange}
+        />
+
+        <UnsplashModal
+          visible={unsplashModalVisible}
+          onCancel={this.unsplashHandler.onCancel}
+          onOk={this.unsplashHandler.onOk}
+          onSearch={this.unsplashHandler.onSearch}
+          onImageClick={this.unsplashHandler.onImageClick}
+          selectedImageId={unsplashSelectedImageId}
+          loading={unsplashModalLoading}
+          images={unsplashImages}
+        />
       </div>
     );
   }

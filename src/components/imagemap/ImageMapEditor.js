@@ -538,102 +538,6 @@ class ImageMapEditor extends Component {
     },
   };
 
-  updateSlides = numberOfSlides => {
-    this.setState({ isApplying: true });
-    let { slides = [] } = this.state;
-
-    // Create / Delete new slide
-    const difference = numberOfSlides - slides.length;
-    if (difference < 0) {
-      // Remove
-      slides
-        .slice(numberOfSlides)
-        .map(toBeRemovedSlideId => this.canvasRef.handler.removeById(toBeRemovedSlideId));
-      slides = slides.slice(0, numberOfSlides);
-    } else if (difference > 0) {
-      // Add
-      for (let i = 0; i < difference; i += 1) {
-        slides.push(`slide-${v4()}`);
-      }
-    }
-
-    // Set coordinates and size
-    const { workarea } = this.canvasRef.handler;
-    const slideSpacing = 15;
-    const slideWidth = workarea.width / numberOfSlides;
-
-    // Create element option
-    const option = {
-      type: 'image',
-      width: slideWidth,
-      height: workarea.height,
-      top: workarea.top + workarea.height + 30,
-      left: 0,
-      name: 'slide',
-      isSlide: true,
-    };
-
-    // Get canvas image in URI
-    const canvasImageUri = this.canvasRef.handler.getCanvasUri();
-    const buf = Buffer.from(canvasImageUri.split(',')[1], 'base64');
-
-    // workarea's left - half of excess on the right because of spacing; to center slide series
-    // -1 for not including the first slide, no spacing in first slide
-    const workareaLeft = workarea.left - (slideSpacing * (numberOfSlides - 1)) / 2;
-    const getBase64SplitCallback = srcList => {
-      slides.forEach((slideId, i) => {
-        const object = this.canvasRef.handler.findById(slideId);
-        const left = workareaLeft + slideWidth * i + slideSpacing * i;
-
-        if (object) {
-          this.canvasRef.handler.removeById(slideId);
-        }
-
-        this.insertSlide(option, slideId, srcList[i], left);
-      });
-
-      this.setState({ slides, isApplying: false });
-    };
-
-    this.getBase64Split(buf, numberOfSlides, slideWidth, workarea.height, getBase64SplitCallback);
-  };
-
-  insertSlide = (option, id, src, left) => {
-    this.canvasRef.handler.add(
-      { ...option, id, src, left },
-      true /* centered */,
-      false /* loaded */,
-      false /* transaction */,
-      true /* isSlide */,
-    );
-  };
-
-  getBase64Split = (buf, numberOfSlides, slideWidth, slideHeight, callback) => {
-    Jimp.read(buf, (err, image) => {
-      if (!err) {
-        const base64Promises = [];
-
-        // Get base 64 async
-        for (let i = 0; i < numberOfSlides; i += 1) {
-          const imageCloned = image.clone();
-          base64Promises.push(
-            imageCloned
-              .crop(slideWidth * i, 0, slideWidth, slideHeight)
-              .quality(100)
-              .getBase64Async(Jimp.MIME_JPEG),
-          );
-        }
-
-        // Get all base 64
-        Promise.all(base64Promises).then(srcList => {
-          callback(srcList);
-        });
-      } else {
-        alert('An error occurred!');
-      }
-    });
-  };
-
   handlers = {
     onChangePreview: checked => {
       const data = this.canvasRef.handler.exportJSON().objects.filter(obj => {
@@ -793,6 +697,106 @@ class ImageMapEditor extends Component {
       editing,
     });
   };
+
+  updateSlides = numberOfSlides => {
+    this.setState({ isApplying: true });
+    let { slides = [] } = this.state;
+
+    // Create / Delete new slide
+    const difference = numberOfSlides - slides.length;
+    if (difference < 0) {
+      // Remove
+      slides
+        .slice(numberOfSlides)
+        .map(toBeRemovedSlideId => this.canvasRef.handler.removeById(toBeRemovedSlideId));
+      slides = slides.slice(0, numberOfSlides);
+    } else if (difference > 0) {
+      // Add
+      for (let i = 0; i < difference; i += 1) {
+        slides.push(`slide-${v4()}`);
+      }
+    }
+
+    // Set coordinates and size
+    const { workarea } = this.canvasRef.handler;
+    const slideSpacing = 15;
+    const slideWidth = workarea.width / numberOfSlides;
+
+    // Create element option
+    const option = {
+      type: 'image',
+      width: slideWidth,
+      height: workarea.height,
+      top: workarea.top + workarea.height + 30,
+      left: 0,
+      name: 'slide',
+      isSlide: true,
+    };
+
+    // Get canvas image in URI
+    const canvasImageUri = this.canvasRef.handler.getCanvasUri();
+    const buf = Buffer.from(canvasImageUri.split(',')[1], 'base64');
+
+    // workarea's left - half of excess on the right because of spacing; to center slide series
+    // -1 for not including the first slide, no spacing in first slide
+    const workareaLeft = workarea.left - (slideSpacing * (numberOfSlides - 1)) / 2;
+    const getBase64SplitCallback = srcList => {
+      slides.forEach((slideId, i) => {
+        const object = this.canvasRef.handler.findById(slideId);
+        const left = workareaLeft + slideWidth * i + slideSpacing * i;
+
+        if (object) {
+          this.canvasRef.handler.removeById(slideId);
+        }
+
+        this.insertSlide(option, slideId, srcList[i], left);
+      });
+
+      this.setState({ slides, isApplying: false });
+    };
+
+    this.getBase64Split(buf, numberOfSlides, slideWidth, workarea.height, getBase64SplitCallback);
+  };
+
+  insertSlide = (option, id, src, left) => {
+    this.canvasRef.handler.add(
+      { ...option, id, src, left },
+      true /* centered */,
+      false /* loaded */,
+      false /* transaction */,
+      true /* isSlide */,
+    );
+  };
+
+  getBase64Split = (buf, numberOfSlides, slideWidth, slideHeight, callback) => {
+    Jimp.read(buf, (err, image) => {
+      if (!err) {
+        const base64Promises = [];
+
+        // Get base 64 async
+        for (let i = 0; i < numberOfSlides; i += 1) {
+          const imageCloned = image.clone();
+          base64Promises.push(
+            imageCloned
+              .crop(slideWidth * i, 0, slideWidth, slideHeight)
+              .quality(100)
+              .getBase64Async(Jimp.MIME_JPEG),
+          );
+        }
+
+        // Get all base 64
+        Promise.all(base64Promises).then(srcList => {
+          callback(srcList);
+        });
+      } else {
+        alert('An error occurred!');
+      }
+    });
+  };
+
+  // searchUnsplash = () => {
+
+  // }
 
   render() {
     const {

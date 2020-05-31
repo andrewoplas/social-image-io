@@ -22,13 +22,20 @@
       "description": "",
       "type": "modal-button",
       "icon": {
-        "prefix": "fas",
+        "prefix": "far",
         "name": "image"
       },
-      "option": {
-        "type": "modal-button",
-        "modal-id": "upload-image"
-      }
+      "modal": "image-upload"
+    },
+    {
+      "name": "Unsplash",
+      "description": "",
+      "type": "modal-button",
+      "icon": {
+        "prefix": "fas",
+        "name": "images"
+      },
+      "modal": "unsplash"
     }
   ],
   "My Images": [
@@ -47,7 +54,6 @@
       }
     }
   ],
-
   "Stock Images": [
     {
       "name": "Image",
