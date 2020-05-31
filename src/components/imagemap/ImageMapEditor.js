@@ -626,7 +626,6 @@ class ImageMapEditor extends Component {
 
         // Get all base 64
         Promise.all(base64Promises).then(srcList => {
-          console.log(srcList);
           callback(srcList);
         });
       } else {

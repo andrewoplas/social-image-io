@@ -404,6 +404,29 @@ class Handler implements HandlerOptions {
   };
 
   /**
+   * Get primary object
+   * @returns {FabricObject[]}
+   */
+  public getObjectsV2 = (): FabricObject[] => {
+    const objects = this.canvas.getObjects().filter((obj: FabricObject) => {
+      if (obj.id === 'grid') {
+        return false;
+      } else if (obj.superType === 'port') {
+        return false;
+      } else if (!obj.id) {
+        return false;
+      }
+      return true;
+    }) as FabricObject[];
+    if (objects.length) {
+      objects.forEach(obj => (this.objectMap[obj.id] = obj));
+    } else {
+      this.objectMap = {};
+    }
+    return objects;
+  };
+
+  /**
    * Set key pair
    * @param {keyof FabricObject} key
    * @param {*} value
@@ -1864,15 +1887,14 @@ class Handler implements HandlerOptions {
     fabricGroup.set({ originX: 'center', originY: 'center' });
 
     // Put canvas things in new group
-    const canvasObjects = this.getObjects();
-    canvasObjects.forEach(object => {
-      const { id, type } = object;
-
+    const canvasObjects = this.getObjectsV2();
+    for (let i = 0; i < canvasObjects.length; i += 1) {
+      const { id, type } = canvasObjects[i];
       if ((type === 'image' && !id.startsWith('slide')) || type === 'textbox') {
-        const clone = fabric.util.object.clone(object);
+        const clone = fabric.util.object.clone(canvasObjects[i]);
         fabricGroup.addWithUpdate(clone).setCoords();
       }
-    });
+    }
 
     return fabricGroup.toDataURL({
       format: 'png',
