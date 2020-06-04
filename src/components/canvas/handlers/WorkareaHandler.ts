@@ -5,10 +5,11 @@ import { WorkareaLayout, WorkareaObject } from '../utils';
 import { VideoObject } from '../objects/Video';
 
 const defaultWorkareaOption: Partial<WorkareaObject> = {
-  width: 1080,
-  height: 1080,
-  workareaWidth: 1080,
-  workareaHeight: 1080,
+  width: 600,
+  height: 400,
+  workareaWidth: 600,
+  workareaHeight: 400,
+  slidesWidth: 600,
   lockScalingX: true,
   lockScalingY: true,
   scaleX: 1,

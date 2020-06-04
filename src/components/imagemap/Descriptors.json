@@ -1,5 +1,153 @@
 {
-  "Tools": [
+  "Text": [
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    }
+  ],
+  "Background": [
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    }
+  ],
+  "Objects": [
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    }
+  ],
+  "Stock": [
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
+    }
+  ],
+  "Upload": [
     {
       "name": "Text",
       "description": "",
@@ -36,122 +184,6 @@
         "name": "images"
       },
       "modal": "unsplash"
-    }
-  ],
-  "My Images": [
-    {
-      "name": "Image",
-      "description": "",
-      "type": "image",
-      "icon": {
-        "prefix": "fas",
-        "name": "image"
-      },
-      "option": {
-        "type": "image",
-        "name": "New image",
-        "src": "./images/sample/test_image.jpg"
-      }
-    }
-  ],
-  "Stock Images": [
-    {
-      "name": "Image",
-      "description": "",
-      "type": "image",
-      "icon": {
-        "prefix": "fas",
-        "name": "image"
-      },
-      "option": {
-        "type": "image",
-        "name": "New image",
-        "src": "./images/sample/test_image.jpg"
-      }
-    },
-    {
-      "name": "Image",
-      "description": "",
-      "type": "image",
-      "icon": {
-        "prefix": "fas",
-        "name": "image"
-      },
-      "option": {
-        "type": "image",
-        "name": "New image",
-        "src": "./images/sample/test_image.jpg"
-      }
-    },
-    {
-      "name": "Image",
-      "description": "",
-      "type": "image",
-      "icon": {
-        "prefix": "fas",
-        "name": "image"
-      },
-      "option": {
-        "type": "image",
-        "name": "New image",
-        "src": "./images/sample/test_image.jpg"
-      }
-    },
-    {
-      "name": "Image",
-      "description": "",
-      "type": "image",
-      "icon": {
-        "prefix": "fas",
-        "name": "image"
-      },
-      "option": {
-        "type": "image",
-        "name": "New image",
-        "src": "./images/sample/test_image.jpg"
-      }
-    },
-    {
-      "name": "Image",
-      "description": "",
-      "type": "image",
-      "icon": {
-        "prefix": "fas",
-        "name": "image"
-      },
-      "option": {
-        "type": "image",
-        "name": "New image",
-        "src": "./images/sample/test_image.jpg"
-      }
-    },
-    {
-      "name": "Image",
-      "description": "",
-      "type": "image",
-      "icon": {
-        "prefix": "fas",
-        "name": "image"
-      },
-      "option": {
-        "type": "image",
-        "name": "New image",
-        "src": "./images/sample/test_image.jpg"
-      }
-    },
-    {
-      "name": "Image",
-      "description": "",
-      "type": "image",
-      "icon": {
-        "prefix": "fas",
-        "name": "image"
-      },
-      "option": {
-        "type": "image",
-        "name": "New image",
-        "src": "./images/sample/test_image.jpg"
-      }
     }
   ]
 }

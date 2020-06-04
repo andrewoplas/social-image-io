@@ -1,6 +1,7 @@
 import { fabric } from 'fabric';
 import warning from 'warning';
 import { v4 } from 'uuid';
+import Jimp from 'jimp';
 
 import {
   ElementHandler,
@@ -1877,28 +1878,46 @@ class Handler implements HandlerOptions {
 
   /**
    * Get URI of Canvas only
-   * @param {string} [option={ name: 'New Image', format: 'png', quality: 1 }]
+   * @param {any} callback
    */
-  getCanvasUri = () => {
+  public getCanvasUri = callback => {
     // Make a new group
     const fabricGroup = new fabric.Group();
 
     // Ensure originX/Y 'center' is being used, as text uses left/top by default.
-    fabricGroup.set({ originX: 'center', originY: 'center' });
+    fabricGroup.set({ originX: 'left', originY: 'top' });
 
     // Put canvas things in new group
     const canvasObjects = this.getObjectsV2();
     for (let i = 0; i < canvasObjects.length; i += 1) {
       const { id, type } = canvasObjects[i];
+
       if ((type === 'image' && !id.startsWith('slide')) || type === 'textbox') {
         const clone = fabric.util.object.clone(canvasObjects[i]);
         fabricGroup.addWithUpdate(clone).setCoords();
       }
     }
 
-    return fabricGroup.toDataURL({
-      format: 'png',
-      quality: 1,
+    const workareaObj = fabricGroup
+      .getObjects()
+      .find((object: FabricObject) => object.id === 'workarea');
+
+    const canvasImageUri = fabricGroup.toDataURL({ format: 'png', quality: 1 });
+    const buf = Buffer.from(canvasImageUri.split(',')[1], 'base64');
+    Jimp.read(buf, (err, image) => {
+      if (!err) {
+        const x = this.workarea.left - workareaObj.group.left;
+        const y = this.workarea.top - workareaObj.group.top;
+
+        image
+          .crop(x, y, this.workarea.width, this.workarea.height)
+          .quality(100)
+          .getBase64(Jimp.MIME_JPEG, (err, value) => {
+            callback(value);
+          });
+      } else {
+        alert('An error occured.');
+      }
     });
   };
 }

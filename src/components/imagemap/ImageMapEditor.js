@@ -1,5 +1,5 @@
 /* eslint-disable no-alert */
-import { Badge, Button, Menu, Popconfirm, message } from 'antd';
+import { Badge, Button, Menu, Popconfirm } from 'antd';
 import { fabric } from 'fabric';
 import i18n from 'i18next';
 import Jimp from 'jimp';
@@ -17,7 +17,6 @@ import ImageMapFooterToolbar from './ImageMapFooterToolbar';
 import ImageMapHeaderToolbar from './ImageMapHeaderToolbar';
 import ImageMapItems from './ImageMapItems';
 import ImageMapPreview from './ImageMapPreview';
-import ImageMapTitle from './ImageMapTitle';
 
 const propertiesToInclude = [
   'id',
@@ -105,6 +104,7 @@ class ImageMapEditor extends Component {
     objects: undefined,
     slides: [],
     isApplying: false,
+    shouldApplyAgain: true,
   };
 
   componentDidMount() {
@@ -129,6 +129,7 @@ class ImageMapEditor extends Component {
     onAdd: target => {
       const { editing } = this.state;
       this.forceUpdate();
+
       if (!editing) {
         this.changeEditing(true);
       }
@@ -137,6 +138,9 @@ class ImageMapEditor extends Component {
         return;
       }
       this.canvasRef.handler.select(target);
+
+      // Update slides
+      this.updateSlides(this.canvasRef.handler.workarea.slides);
     },
     onSelect: target => {
       const { selectedItem } = this.state;
@@ -169,14 +173,25 @@ class ImageMapEditor extends Component {
         this.changeEditing(true);
       }
       this.canvasHandlers.onSelect(null);
+
+      // Update slides
+      this.updateSlides(this.canvasRef.handler.workarea.slides);
     },
-    onModified: debounce(() => {
+    onModified: debounce(object => {
       const { editing } = this.state;
       this.forceUpdate();
+
+      this.setState({ shouldApplyAgain: true }, () => {
+        if (!object?.id || !object?.id?.startsWith('slide')) {
+          // Update slides
+          this.updateSlides(this.canvasRef.handler.workarea.slides);
+        }
+      });
+
       if (!editing) {
         this.changeEditing(true);
       }
-    }, 300),
+    }, 2000),
     onZoom: zoom => {
       this.setState({
         zoomRatio: zoom,
@@ -398,18 +413,32 @@ class ImageMapEditor extends Component {
         this.canvasRef.handler.workareaHandler.setImage(changedValue);
         return;
       }
-      if (changedKey === 'width' || changedKey === 'height') {
+      if (changedKey === 'slidesWidth' || changedKey === 'height') {
+        if (changedKey === 'slidesWidth') {
+          this.canvasRef.handler.workarea.set('slidesWidth', changedValue);
+        }
+
+        const newWidth =
+          allValues.slidesWidth * Math.max(1, this.canvasRef.handler.workarea.slides);
         this.canvasRef.handler.originScaleToResize(
           this.canvasRef.handler.workarea,
-          allValues.width,
+          newWidth,
           allValues.height,
         );
         this.canvasRef.canvas.centerObject(this.canvasRef.handler.workarea);
+        this.updateSlides(changedValue, newWidth);
         return;
       }
       if (changedKey === 'slides') {
-        this.canvasRef.handler.workarea.set(changedKey, changedValue);
-        this.updateSlides(changedValue);
+        const { handler } = this.canvasRef;
+        this.setState({ shouldApplyAgain: true }, () => {
+          const newWidth = handler.workarea.slidesWidth * Math.max(1, changedValue);
+
+          handler.originScaleToResize(handler.workarea, newWidth, handler.workarea.height);
+          this.canvasRef.canvas.centerObject(handler.workarea);
+
+          this.updateSlides(changedValue, newWidth);
+        });
       }
 
       this.canvasRef.handler.workarea.set(changedKey, changedValue);
@@ -664,13 +693,6 @@ class ImageMapEditor extends Component {
         true,
       );
     },
-    onApply: () => {
-      if (this.canvasRef.handler.workarea.slides > 0)
-        this.updateSlides(this.canvasRef.handler.workarea.slides);
-      else {
-        message.warning('No slides yet. Please add a slide first.');
-      }
-    },
   };
 
   shortcutHandlers = {
@@ -698,7 +720,11 @@ class ImageMapEditor extends Component {
     });
   };
 
-  updateSlides = numberOfSlides => {
+  updateSlides = (numberOfSlides, width = null) => {
+    if (numberOfSlides === 0 || this.state.isApplying || !this.state.shouldApplyAgain) {
+      return;
+    }
+
     this.setState({ isApplying: true });
     let { slides = [] } = this.state;
 
@@ -720,8 +746,7 @@ class ImageMapEditor extends Component {
     // Set coordinates and size
     const { workarea } = this.canvasRef.handler;
     const slideSpacing = 15;
-    const slideWidth = workarea.width / numberOfSlides;
-
+    const slideWidth = (width || workarea.width) / numberOfSlides;
     // Create element option
     const option = {
       type: 'image',
@@ -734,28 +759,48 @@ class ImageMapEditor extends Component {
     };
 
     // Get canvas image in URI
-    const canvasImageUri = this.canvasRef.handler.getCanvasUri();
-    const buf = Buffer.from(canvasImageUri.split(',')[1], 'base64');
+    this.canvasRef.handler.getCanvasUri(canvasImageUri => {
+      const buf = Buffer.from(canvasImageUri.split(',')[1], 'base64');
 
-    // workarea's left - half of excess on the right because of spacing; to center slide series
-    // -1 for not including the first slide, no spacing in first slide
-    const workareaLeft = workarea.left - (slideSpacing * (numberOfSlides - 1)) / 2;
-    const getBase64SplitCallback = srcList => {
-      slides.forEach((slideId, i) => {
-        const object = this.canvasRef.handler.findById(slideId);
-        const left = workareaLeft + slideWidth * i + slideSpacing * i;
+      const activeObjects = this.canvasRef.canvas.getActiveObjects();
 
-        if (object) {
-          this.canvasRef.handler.removeById(slideId);
+      // workarea's left - half of excess on the right because of spacing; to center slide series
+      // -1 for not including the first slide, no spacing in first slide
+      const workareaLeft = workarea.left - (slideSpacing * (numberOfSlides - 1)) / 2;
+      const getBase64SplitCallback = srcList => {
+        slides.forEach((slideId, i) => {
+          const object = this.canvasRef.handler.findById(slideId);
+          const left = workareaLeft + slideWidth * i + slideSpacing * i;
+
+          if (object) {
+            this.canvasRef.handler.removeById(slideId);
+          }
+
+          this.insertSlide(option, slideId, srcList[i], left);
+        });
+
+        const updatedStates = { slides, isApplying: false, shouldApplyAgain: false };
+
+        if (activeObjects?.length === 1) {
+          this.canvasRef.canvas.setActiveObject(activeObjects[0]);
+        } else if (activeObjects?.length > 1) {
+          const activeSelection = new fabric.ActiveSelection(activeObjects, {
+            canvas: this.canvasRef.canvas,
+            ...this.activeSelection,
+          });
+
+          this.canvasRef.canvas.setActiveObject(activeSelection);
+          this.setState(updatedStates, () => {
+            // Update slides
+            this.updateSlides(this.canvasRef.handler.workarea.slides);
+          });
         }
 
-        this.insertSlide(option, slideId, srcList[i], left);
-      });
+        this.setState(updatedStates);
+      };
 
-      this.setState({ slides, isApplying: false });
-    };
-
-    this.getBase64Split(buf, numberOfSlides, slideWidth, workarea.height, getBase64SplitCallback);
+      this.getBase64Split(buf, numberOfSlides, slideWidth, workarea.height, getBase64SplitCallback);
+    });
   };
 
   insertSlide = (option, id, src, left) => {
@@ -772,7 +817,6 @@ class ImageMapEditor extends Component {
     Jimp.read(buf, (err, image) => {
       if (!err) {
         const base64Promises = [];
-
         // Get base 64 async
         for (let i = 0; i < numberOfSlides; i += 1) {
           const imageCloned = image.clone();
@@ -793,10 +837,6 @@ class ImageMapEditor extends Component {
       }
     });
   };
-
-  // searchUnsplash = () => {
-
-  // }
 
   render() {
     const {
@@ -833,7 +873,6 @@ class ImageMapEditor extends Component {
       onChangeStyles,
       onChangeDataSources,
       onSaveImage,
-      onApply,
     } = this.handlers;
     const action = (
       <React.Fragment>
@@ -942,7 +981,6 @@ class ImageMapEditor extends Component {
               onChangePreview={onChangePreview}
               zoomRatio={zoomRatio}
               onSaveImage={onSaveImage}
-              onApply={onApply}
               isApplying={isApplying}
             />
           </div>

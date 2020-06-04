@@ -10,6 +10,7 @@ const { Panel } = Collapse;
 class MapProperties extends Component {
   static propTypes = {
     canvasRef: PropTypes.any,
+    form: PropTypes.any,
   };
 
   render() {
@@ -19,18 +20,16 @@ class MapProperties extends Component {
       return (
         <Scrollbar>
           <Form layout="horizontal">
-            <Collapse bordered={false}>
-              {Object.keys(PropertyDefinition.map).map(key => {
-                return (
-                  <Panel key={key} header={PropertyDefinition.map[key].title} showArrow={showArrow}>
-                    {PropertyDefinition.map[key].component.render(
-                      canvasRef,
-                      form,
-                      canvasRef.handler.workarea,
-                    )}
-                  </Panel>
-                );
-              })}
+            <Collapse bordered={false} defaultActiveKey={Object.keys(PropertyDefinition.map)?.[0]}>
+              {Object.keys(PropertyDefinition.map).map(key => (
+                <Panel key={key} header={PropertyDefinition.map[key].title} showArrow={showArrow}>
+                  {PropertyDefinition.map[key].component.render(
+                    canvasRef,
+                    form,
+                    canvasRef.handler.workarea,
+                  )}
+                </Panel>
+              ))}
             </Collapse>
           </Form>
         </Scrollbar>

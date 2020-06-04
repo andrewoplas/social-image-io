@@ -35,6 +35,7 @@ export default {
             initialValue: data.slides || 0,
           })(<InputNumber />)}
         </Form.Item>
+
         {/* <Form.Item label={i18n.t('common.layout')} colon={false}>
           {getFieldDecorator('layout', {
             initialValue: layout,
@@ -61,6 +62,21 @@ export default {
                       },
                     ],
                     initialValue: data.width * data.scaleX,
+                  })(<InputNumber />)}
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item label={i18n.t('common.slidesWidth')} colon={false}>
+                  {getFieldDecorator('slidesWidth', {
+                    rules: [
+                      {
+                        required: true,
+                        message: i18n.t('validation.enter-property', {
+                          arg: i18n.t('common.slidesWidth'),
+                        }),
+                      },
+                    ],
+                    initialValue: data.slidesWidth,
                   })(<InputNumber />)}
                 </Form.Item>
               </Col>

@@ -22,10 +22,6 @@ export default {
       title: 'Basic',
       component: MapProperty,
     },
-    image: {
-      title: 'Background',
-      component: ImageProperty,
-    },
   },
   group: {
     general: {
