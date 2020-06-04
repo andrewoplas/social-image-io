@@ -686,12 +686,9 @@ class ImageMapEditor extends Component {
       });
     },
     onSaveImage: () => {
-      this.canvasRef.handler.saveCanvasImage(
-        {
-          name: this.canvasRef.handler.workarea.name,
-        },
-        true,
-      );
+      this.canvasRef.handler.saveCanvasImage({
+        name: this.canvasRef.handler.workarea.name,
+      });
     },
   };
 

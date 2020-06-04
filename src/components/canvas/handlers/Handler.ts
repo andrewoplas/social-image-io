@@ -1,51 +1,50 @@
 import { fabric } from 'fabric';
-import warning from 'warning';
-import { v4 } from 'uuid';
 import Jimp from 'jimp';
-
+import { v4 } from 'uuid';
+import warning from 'warning';
 import {
-  ElementHandler,
-  ImageHandler,
-  ChartHandler,
-  CropHandler,
-  AnimationHandler,
-  ContextmenuHandler,
-  TooltipHandler,
-  ZoomHandler,
-  WorkareaHandler,
-  TransactionHandler,
-  LinkHandler,
   AlignmentHandler,
-  GuidelineHandler,
-  GridHandler,
-  PortHandler,
-  NodeHandler,
-  EventHandler,
+  AnimationHandler,
+  ChartHandler,
+  ContextmenuHandler,
+  CropHandler,
   DrawingHandler,
+  ElementHandler,
+  EventHandler,
+  GridHandler,
+  GuidelineHandler,
+  ImageHandler,
   InteractionHandler,
+  LinkHandler,
+  NodeHandler,
+  PortHandler,
   ShortcutHandler,
+  TooltipHandler,
+  TransactionHandler,
+  WorkareaHandler,
+  ZoomHandler,
 } from '.';
+import CanvasObject from '../CanvasObject';
+import { LinkObject } from '../objects/Link';
+import { NodeObject } from '../objects/Node';
+import { PortObject } from '../objects/Port';
 import {
-  FabricObject,
-  FabricImage,
-  WorkareaObject,
-  WorkareaOption,
-  InteractionMode,
   CanvasOption,
+  FabricCanvas,
+  FabricElement,
+  FabricGroup,
+  FabricImage,
+  FabricObject,
+  FabricObjectOption,
   GridOption,
   GuidelineOption,
+  InteractionMode,
   KeyEvent,
-  FabricObjectOption,
-  FabricElement,
-  FabricCanvas,
-  FabricGroup,
+  WorkareaObject,
+  WorkareaOption,
 } from '../utils';
-import CanvasObject from '../CanvasObject';
-import { NodeObject } from '../objects/Node';
-import { TransactionEvent } from './TransactionHandler';
-import { LinkObject } from '../objects/Link';
-import { PortObject } from '../objects/Port';
 import { LinkOption } from './LinkHandler';
+import { TransactionEvent } from './TransactionHandler';
 
 export interface HandlerOptions {
   /**
@@ -1861,26 +1860,24 @@ class Handler implements HandlerOptions {
    * Save canvas as image
    * @param {string} [option={ name: 'New Image', format: 'png', quality: 1 }]
    */
-  public saveCanvasImage = (
-    option = { name: 'New Image', format: 'png', quality: 1 },
-    canvasContentOnly = false,
-  ) => {
-    const dataUrl = canvasContentOnly ? this.getCanvasUri() : this.canvas.toDataURL(option);
-    if (dataUrl) {
-      const anchorEl = document.createElement('a');
-      anchorEl.href = dataUrl;
-      anchorEl.download = `${option.name}.png`;
-      document.body.appendChild(anchorEl); // required for firefox
-      anchorEl.click();
-      anchorEl.remove();
-    }
+  public saveCanvasImage = (option = { name: 'New Image', format: 'png', quality: 1 }) => {
+    this.getCanvasUri((dataUrl: string) => {
+      if (dataUrl) {
+        const anchorEl = document.createElement('a');
+        anchorEl.href = dataUrl;
+        anchorEl.download = `${option.name}.png`;
+        document.body.appendChild(anchorEl); // required for firefox
+        anchorEl.click();
+        anchorEl.remove();
+      }
+    });
   };
 
   /**
    * Get URI of Canvas only
    * @param {any} callback
    */
-  public getCanvasUri = callback => {
+  public getCanvasUri = (callback: Function) => {
     // Make a new group
     const fabricGroup = new fabric.Group();
 
@@ -1913,7 +1910,11 @@ class Handler implements HandlerOptions {
           .crop(x, y, this.workarea.width, this.workarea.height)
           .quality(100)
           .getBase64(Jimp.MIME_JPEG, (err, value) => {
-            callback(value);
+            if (err) {
+              alert(err);
+            } else {
+              callback(value);
+            }
           });
       } else {
         alert('An error occured.');
