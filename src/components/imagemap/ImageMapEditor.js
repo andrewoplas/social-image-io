@@ -17,6 +17,7 @@ import ImageMapFooterToolbar from './ImageMapFooterToolbar';
 import ImageMapHeaderToolbar from './ImageMapHeaderToolbar';
 import ImageMapItems from './ImageMapItems';
 import ImageMapPreview from './ImageMapPreview';
+import { getSizeTypeDimensions } from '../../utils/functions';
 
 const propertiesToInclude = [
   'id',
@@ -92,7 +93,7 @@ const changedKeyToUpdateSlides = [
 class ImageMapEditor extends Component {
   state = {
     selectedItem: null,
-    zoomRatio: 1,
+    zoomRatio: 0.45,
     preview: false,
     loading: false,
     progress: 0,
@@ -104,6 +105,7 @@ class ImageMapEditor extends Component {
     objects: undefined,
     slides: [],
     isApplying: false,
+    isSizeUpdating: false,
     shouldApplyAgain: true,
   };
 
@@ -191,7 +193,7 @@ class ImageMapEditor extends Component {
       if (!editing) {
         this.changeEditing(true);
       }
-    }, 2000),
+    }, 250),
     onZoom: zoom => {
       this.setState({
         zoomRatio: zoom,
@@ -405,43 +407,30 @@ class ImageMapEditor extends Component {
       this.canvasRef.handler.set(changedKey, changedValue);
     },
     onChangeWokarea: (changedKey, changedValue, allValues) => {
+      const { handler } = this.canvasRef;
+
       if (changedKey === 'layout') {
-        this.canvasRef.handler.workareaHandler.setLayout(changedValue);
+        handler.workareaHandler.setLayout(changedValue);
         return;
       }
       if (changedKey === 'file' || changedKey === 'src') {
-        this.canvasRef.handler.workareaHandler.setImage(changedValue);
+        handler.workareaHandler.setImage(changedValue);
         return;
       }
       if (changedKey === 'slidesWidth' || changedKey === 'height') {
-        if (changedKey === 'slidesWidth') {
-          this.canvasRef.handler.workarea.set('slidesWidth', changedValue);
-        }
-
-        const newWidth =
-          allValues.slidesWidth * Math.max(1, this.canvasRef.handler.workarea.slides);
-        this.canvasRef.handler.originScaleToResize(
-          this.canvasRef.handler.workarea,
-          newWidth,
-          allValues.height,
-        );
-        this.canvasRef.canvas.centerObject(this.canvasRef.handler.workarea);
-        this.updateSlides(changedValue, newWidth);
+        this.updateWorkAreaSize(allValues.slidesWidth, allValues.height, handler?.workarea?.slides);
         return;
       }
       if (changedKey === 'slides') {
-        const { handler } = this.canvasRef;
-        this.setState({ shouldApplyAgain: true }, () => {
-          const newWidth = handler.workarea.slidesWidth * Math.max(1, changedValue);
-
-          handler.originScaleToResize(handler.workarea, newWidth, handler.workarea.height);
-          this.canvasRef.canvas.centerObject(handler.workarea);
-
-          this.updateSlides(changedValue, newWidth);
-        });
+        this.updateWorkAreaSize(allValues.slidesWidth, allValues.height, changedValue);
+      }
+      if (changedKey === 'sizeType') {
+        this.setState({ isSizeUpdating: true });
+        const { width, height } = getSizeTypeDimensions(changedValue);
+        this.updateWorkAreaSize(width, height, handler?.workarea?.slides);
       }
 
-      this.canvasRef.handler.workarea.set(changedKey, changedValue);
+      handler.workarea.set(changedKey, changedValue);
       this.canvasRef.canvas.requestRenderAll();
     },
     onTooltip: (ref, target) => {
@@ -564,6 +553,14 @@ class ImageMapEditor extends Component {
     },
     onTransaction: () => {
       this.forceUpdate();
+    },
+    onLoad: handler => {
+      this.showLoading(true);
+      setTimeout(() => {
+        handler.zoomHandler.zoomOneToOne(this.state.zoomRatio);
+        this.updateSlides(handler.workarea.slides);
+        this.showLoading(false);
+      }, 1000);
     },
   };
 
@@ -717,7 +714,23 @@ class ImageMapEditor extends Component {
     });
   };
 
-  updateSlides = (numberOfSlides, width = null) => {
+  updateWorkAreaSize = (slidesWidth, height, slides = 1) => {
+    this.setState({ shouldApplyAgain: true }, () => {
+      const { handler } = this.canvasRef;
+
+      const newWidth = slidesWidth * slides;
+      handler.originScaleToResize(handler.workarea, newWidth, height);
+
+      this.canvasRef.canvas.centerObject(handler.workarea);
+      this.updateSlides(slides);
+
+      handler.workarea.set('slidesWidth', slidesWidth);
+    });
+  };
+
+  updateSlides = numberOfSlides => {
+    // Update only if number of slides if more than zero
+    // Cancel update it is currently updating (applying)
     if (numberOfSlides === 0 || this.state.isApplying || !this.state.shouldApplyAgain) {
       return;
     }
@@ -742,14 +755,19 @@ class ImageMapEditor extends Component {
 
     // Set coordinates and size
     const { workarea } = this.canvasRef.handler;
+    const { width: workAreaWidth, height: workareaHeight } = getSizeTypeDimensions(
+      workarea.sizeType,
+    );
+
     const slideSpacing = 15;
-    const slideWidth = (width || workarea.width) / numberOfSlides;
+    const slideWidth = (workAreaWidth * numberOfSlides) / numberOfSlides;
+
     // Create element option
     const option = {
       type: 'image',
       width: slideWidth,
-      height: workarea.height,
-      top: workarea.top + workarea.height + 30,
+      height: workareaHeight,
+      top: workarea.top + workareaHeight + 30,
       left: 0,
       name: 'slide',
       isSlide: true,
@@ -776,7 +794,12 @@ class ImageMapEditor extends Component {
           this.insertSlide(option, slideId, srcList[i], left);
         });
 
-        const updatedStates = { slides, isApplying: false, shouldApplyAgain: false };
+        const updatedStates = {
+          slides,
+          isApplying: false,
+          shouldApplyAgain: false,
+          isSizeUpdating: false,
+        };
 
         if (activeObjects?.length === 1) {
           this.canvasRef.canvas.setActiveObject(activeObjects[0]);
@@ -796,7 +819,7 @@ class ImageMapEditor extends Component {
         this.setState(updatedStates);
       };
 
-      this.getBase64Split(buf, numberOfSlides, slideWidth, workarea.height, getBase64SplitCallback);
+      this.getBase64Split(buf, numberOfSlides, slideWidth, workareaHeight, getBase64SplitCallback);
     });
   };
 
@@ -841,6 +864,7 @@ class ImageMapEditor extends Component {
       selectedItem,
       zoomRatio,
       loading,
+      isSizeUpdating,
       progress,
       animations,
       styles,
@@ -861,6 +885,7 @@ class ImageMapEditor extends Component {
       onClick,
       onContext,
       onTransaction,
+      onLoad,
     } = this.canvasHandlers;
     const {
       onChangePreview,
@@ -954,7 +979,6 @@ class ImageMapEditor extends Component {
               ref={c => {
                 this.canvasRef = c;
               }}
-              minZoom={30}
               defaultOption={defaultOption}
               propertiesToInclude={propertiesToInclude}
               onModified={onModified}
@@ -966,6 +990,7 @@ class ImageMapEditor extends Component {
               onClick={onClick}
               onContext={onContext}
               onTransaction={onTransaction}
+              onLoad={onLoad}
               keyEvent={{
                 transaction: true,
               }}
@@ -1004,7 +1029,9 @@ class ImageMapEditor extends Component {
     );
 
     // TODO: Hide title first
-    return <Container title={null} content={content} loading={loading} className="" />;
+    return (
+      <Container title={null} content={content} loading={loading || isSizeUpdating} className="" />
+    );
   }
 }
 

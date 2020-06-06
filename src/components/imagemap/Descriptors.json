@@ -184,6 +184,20 @@
         "name": "images"
       },
       "modal": "unsplash"
+    },
+    {
+      "name": "Image",
+      "description": "",
+      "type": "image",
+      "icon": {
+        "prefix": "fas",
+        "name": "image"
+      },
+      "option": {
+        "type": "image",
+        "name": "New image",
+        "src": "./images/sample/test_image.jpg"
+      }
     }
   ]
 }

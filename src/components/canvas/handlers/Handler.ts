@@ -45,6 +45,7 @@ import {
 } from '../utils';
 import { LinkOption } from './LinkHandler';
 import { TransactionEvent } from './TransactionHandler';
+import { getSizeTypeDimensions } from '../../../utils/functions';
 
 export interface HandlerOptions {
   /**
@@ -1906,8 +1907,10 @@ class Handler implements HandlerOptions {
         const x = this.workarea.left - workareaObj.group.left;
         const y = this.workarea.top - workareaObj.group.top;
 
+        const { width, height } = getSizeTypeDimensions(this.workarea.sizeType);
+
         image
-          .crop(x, y, this.workarea.width, this.workarea.height)
+          .crop(x, y, width, height)
           .quality(100)
           .getBase64(Jimp.MIME_JPEG, (err, value) => {
             if (err) {

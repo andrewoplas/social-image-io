@@ -1,6 +1,7 @@
 import React from 'react';
-import { Form, Input, Radio, Row, Col, InputNumber } from 'antd';
+import { Form, Input, Radio, Row, Col, InputNumber, Tooltip } from 'antd';
 import i18n from 'i18next';
+import { sizeTypes, sizeTypeDimensions } from '../../../global/variables';
 
 export default {
   render(canvasRef, form, data) {
@@ -26,58 +27,55 @@ export default {
           {getFieldDecorator('slides', {
             rules: [
               {
-                required: true,
+                required: false,
                 message: i18n.t('validation.enter-property', {
                   arg: i18n.t('common.slides'),
                 }),
               },
             ],
-            initialValue: data.slides || 0,
-          })(<InputNumber />)}
+            initialValue: data.slides,
+          })(<InputNumber max={10} min={1} />)}
         </Form.Item>
 
-        {/* <Form.Item label={i18n.t('common.layout')} colon={false}>
-          {getFieldDecorator('layout', {
-            initialValue: layout,
+        <Form.Item label="Size" colon={false}>
+          {getFieldDecorator('sizeType', {
+            initialValue: data.sizeType,
           })(
-            <Radio.Group size="small">
-              <Radio.Button value="fixed">{i18n.t('common.fixed')}</Radio.Button>
-              <Radio.Button value="responsive">{i18n.t('common.responsive')}</Radio.Button>
-              <Radio.Button value="fullscreen">{i18n.t('common.fullscreen')}</Radio.Button>
+            <Radio.Group>
+              <Tooltip
+                title={`${sizeTypeDimensions.LANDSCAPE.width} x ${sizeTypeDimensions.LANDSCAPE.height}`}
+              >
+                <Radio.Button value={sizeTypes.LANDSCAPE}>Landscape</Radio.Button>
+              </Tooltip>
+              <Tooltip
+                title={`${sizeTypeDimensions.SQUARE.width} x ${sizeTypeDimensions.SQUARE.height}`}
+              >
+                <Radio.Button value={sizeTypes.SQUARE}>Square</Radio.Button>
+              </Tooltip>
+              <Tooltip
+                title={`${sizeTypeDimensions.PORTRAIT.width} x ${sizeTypeDimensions.PORTRAIT.height}`}
+              >
+                <Radio.Button value={sizeTypes.PORTRAIT}>Portrait</Radio.Button>
+              </Tooltip>
             </Radio.Group>,
           )}
-        </Form.Item> */}
+        </Form.Item>
         {layout === 'fixed' ? (
           <React.Fragment>
-            <Row>
+            <Row gutter={16}>
               <Col span={12}>
                 <Form.Item label={i18n.t('common.width')} colon={false}>
-                  {getFieldDecorator('width', {
-                    rules: [
-                      {
-                        required: true,
-                        message: i18n.t('validation.enter-property', {
-                          arg: i18n.t('common.width'),
-                        }),
-                      },
-                    ],
-                    initialValue: data.width * data.scaleX,
-                  })(<InputNumber />)}
-                </Form.Item>
-              </Col>
-              <Col span={12}>
-                <Form.Item label={i18n.t('common.slidesWidth')} colon={false}>
                   {getFieldDecorator('slidesWidth', {
                     rules: [
                       {
-                        required: true,
+                        required: false,
                         message: i18n.t('validation.enter-property', {
                           arg: i18n.t('common.slidesWidth'),
                         }),
                       },
                     ],
                     initialValue: data.slidesWidth,
-                  })(<InputNumber />)}
+                  })(<Input readOnly />)}
                 </Form.Item>
               </Col>
               <Col span={12}>
@@ -85,14 +83,14 @@ export default {
                   {getFieldDecorator('height', {
                     rules: [
                       {
-                        required: true,
+                        required: false,
                         message: i18n.t('validation.enter-property', {
                           arg: i18n.t('common.height'),
                         }),
                       },
                     ],
                     initialValue: data.height * data.scaleY,
-                  })(<InputNumber />)}
+                  })(<Input readOnly />)}
                 </Form.Item>
               </Col>
             </Row>

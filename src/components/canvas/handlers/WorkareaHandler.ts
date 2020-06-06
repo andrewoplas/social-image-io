@@ -3,13 +3,14 @@ import { fabric } from 'fabric';
 import { Handler } from '.';
 import { WorkareaLayout, WorkareaObject } from '../utils';
 import { VideoObject } from '../objects/Video';
+import { sizeTypes, sizeTypeDimensions } from '../../../global/variables';
 
 const defaultWorkareaOption: Partial<WorkareaObject> = {
-  width: 600,
-  height: 400,
-  workareaWidth: 600,
-  workareaHeight: 400,
-  slidesWidth: 600,
+  width: sizeTypeDimensions.SQUARE.width,
+  height: sizeTypeDimensions.SQUARE.height,
+  workareaWidth: sizeTypeDimensions.SQUARE.width,
+  workareaHeight: sizeTypeDimensions.SQUARE.height,
+  slidesWidth: sizeTypeDimensions.SQUARE.width,
   lockScalingX: true,
   lockScalingY: true,
   scaleX: 1,
@@ -25,7 +26,8 @@ const defaultWorkareaOption: Partial<WorkareaObject> = {
   id: 'workarea',
   type: 'image',
   layout: 'fixed', // fixed, responsive, fullscreen
-  slides: 0,
+  sizeType: sizeTypes.SQUARE, // landscape, square, portrait
+  slides: 1,
   link: {},
   tooltip: {
     enabled: false,
