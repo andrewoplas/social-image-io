@@ -248,6 +248,14 @@ video {
   opacity: 0;
 }
 
+.rde-track-horizontal {
+  right: 0px;
+  bottom: 2px;
+  top: 2px;
+  border-radius: 3px;
+  opacity: 0;
+}
+
 .rde-shortcut-help {
   display: flex;
   justify-content: space-around;
@@ -305,15 +313,23 @@ video {
   }
 }
 
-.unsplash-modal {
-  .thumbnail {
-    width: 100%;
-    margin-bottom: 16px;
-    border: 3px solid white;
-    border-radius: 8px;
+.thumbnail {
+  width: 100%;
+  margin-bottom: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
 
-    &.active {
-      border-color: @primary-color;
-    }
-  }
+.thumbnail-horizontal {
+  height: 100%;
+  margin-right: 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.sectionHeader {
+  font-weight: bold;
+  display: block;
+  margin-bottom: 5px;
+  font-size: 12px;
 }

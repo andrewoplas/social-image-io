@@ -1,12 +1,12 @@
 /**
  * Right sidebar
  */
-import { Tabs, Typography } from 'antd';
+import { Tabs } from 'antd';
 import classnames from 'classnames';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import CommonButton from '../common/CommonButton';
-import Icon from '../icon/Icon';
+import TabsItem from './components/TabsItem';
 import MapProperties from './properties/MapProperties';
 import NodeProperties from './properties/NodeProperties';
 
@@ -28,9 +28,9 @@ class ImageMapConfigurations extends Component {
       });
     },
     onCollapse: () => {
-      this.setState({
-        collapse: !this.state.collapse,
-      });
+      this.setState(previousState => ({
+        collapse: !previousState.collapse,
+      }));
     },
   };
 
@@ -57,24 +57,11 @@ class ImageMapConfigurations extends Component {
           onChange={onChangeTab}
           tabBarStyle={{ marginTop: 60 }}
         >
-          <Tabs.TabPane
-            tab={
-              <>
-                <Icon name="cog" />
-                <span style={{ display: 'block', fontSize: '10px' }}>Canvas</span>
-              </>
-            }
-            key="map"
-          >
+          <Tabs.TabPane tab={<TabsItem iconName="cog" tabName="Canvas"></TabsItem>} key="map">
             <MapProperties onChange={onChange} canvasRef={canvasRef} />
           </Tabs.TabPane>
           <Tabs.TabPane
-            tab={
-              <>
-                <Icon name="sliders-h" />
-                <span style={{ display: 'block', fontSize: '10px' }}>Element</span>
-              </>
-            }
+            tab={<TabsItem iconName="sliders-h" tabName="Element"></TabsItem>}
             key="node"
           >
             <NodeProperties onChange={onChange} selectedItem={selectedItem} canvasRef={canvasRef} />

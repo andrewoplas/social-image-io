@@ -15,19 +15,19 @@ const Title = () => {
 
   return (
     <FlexBox style={{ background: 'white' }} flexWrap="wrap" flex="1" alignItems="center">
-      <FlexBox style={{ marginLeft: 8 }} flex="0 1 auto">
+      <FlexBox style={{ marginLeft: 8 }} flex="0 1 auto" justifyContent="space-between">
         <img className="logo-image" src="./images/logo-placeholder.png" alt="logo" />
         <Tooltip title={i18n.t('action.shortcut-help')} overlayStyle={{ fontSize: 11 }}>
           <Button
             className="rde-action-btn"
             style={{
-              color: 'white',
+              color: '#0984e3',
             }}
             shape="circle"
             size="large"
             onClick={showHelp}
           >
-            <Icon name="question" prefix="fas" size={1.5} />
+            <Icon name="question" prefix="fas" size={0.75} />
           </Button>
         </Tooltip>
       </FlexBox>

@@ -131,7 +131,8 @@
     "stop": "Stop",
     "execute": "Execute",
     "go-github": "Go Github!!",
-    "go-docs": "Go Documents!!"
+    "go-docs": "Go Documents!!",
+    "shortcut-help": "Shortcut"
   },
   "common": {
     "name": "Name",
@@ -181,5 +182,30 @@
   "validation": {
     "enter-property": "Please enter {{arg}}.",
     "already-property": "Already exist {{arg}}."
+  },
+  "shortcut": {
+    "q": "Selection",
+    "w": "Grab",
+    "plus": "Zoom In",
+    "minus": "Zoom Out",
+    "h": "Shortcut Help",
+    "escape": "Deselect",
+    "arrow-up": "Move Up",
+    "arrow-down": "Move Down",
+    "arrow-left": "Move Left",
+    "arrow-right": "Move Right",
+    "delete": "Delete",
+    "ctrl-a": "Select All",
+    "ctrl-c": "Copy",
+    "ctrl-v": "Paste",
+    "ctrl-x": "Cut",
+    "ctrl-z": "Undo",
+    "ctrl-y": "Redo",
+    "alt-mouse-left": "Grab",
+    "shfit-mouse-left": "Multi Selection",
+    "mouse-left": "Select",
+    "mouse-right": "Context Memu",
+    "o": "Zoom 1:1",
+    "p": "Zoom Fit"
   }
 }

@@ -7,7 +7,6 @@ import TextProperty from './TextProperty';
 import MapProperty from './MapProperty';
 import LinkProperty from './LinkProperty';
 import VideoProperty from './VideoProperty';
-import ElementProperty from './ElementProperty';
 import IframeProperty from './IframeProperty';
 import AnimationProperty from './AnimationProperty';
 import ShadowProperty from './ShadowProperty';

@@ -1,3 +1,4 @@
+/* eslint-disable no-param-reassign */
 /* eslint-disable jsx-a11y/alt-text */
 /* eslint-disable no-unused-vars */
 /* eslint-disable jsx-a11y/click-events-have-key-events */
@@ -8,7 +9,7 @@
  */
 import React, { Component } from 'react';
 import PropTypes from 'prop-types';
-import { Collapse, notification, Input, message, Modal, Form, Radio } from 'antd';
+import { Collapse, notification, Input, message, Modal, Form, Radio, Tabs, Alert } from 'antd';
 import { v4 } from 'uuid';
 import classnames from 'classnames';
 import i18n from 'i18next';
@@ -23,7 +24,12 @@ import { SVGModal, FileUpload, UrlModal } from '../common';
 import ImageProperty from './properties/ImageProperty';
 import ImageUploadPreview from '../common/ImageUploadPreview';
 import ImageUploadModal from './components/ImageUploadModal';
-import UnsplashModal from './components/UnsplashModal';
+import TabsItem from './components/TabsItem';
+import ItemText from './mapItems/ItemText';
+import ItemBackground from './mapItems/ItemBackground';
+import ItemObjects from './mapItems/ItemObjects';
+import ItemStock from './mapItems/ItemStock';
+import ItemUpload from './mapItems/ItemUpload';
 
 notification.config({
   top: 80,
@@ -43,6 +49,7 @@ class ImageMapItems extends Component {
   state = {
     collapse: false,
     textSearch: '',
+    activeKey: null,
     descriptors: {},
     filteredDescriptors: [],
     svgModalVisible: false,
@@ -53,11 +60,8 @@ class ImageMapItems extends Component {
     imageFileBase64: null,
     imageSrc: '',
 
-    unsplashModalVisible: false,
     unsplashModalLoading: false,
     unsplashImages: [],
-    unsplashSelectedImageId: null,
-    unsplashSelectedImageSrc: null,
   };
 
   componentDidMount() {
@@ -67,9 +71,10 @@ class ImageMapItems extends Component {
 
   UNSAFE_componentWillReceiveProps(nextProps) {
     if (JSON.stringify(this.props.descriptors) !== JSON.stringify(nextProps.descriptors)) {
-      const descriptors = Object.keys(nextProps.descriptors).reduce((prev, key) => {
-        return prev.concat(nextProps.descriptors[key]);
-      }, []);
+      const descriptors = Object.keys(nextProps.descriptors).reduce(
+        (prev, key) => prev.concat(nextProps.descriptors[key]),
+        [],
+      );
       this.setState({
         descriptors,
       });
@@ -102,15 +107,9 @@ class ImageMapItems extends Component {
       return true;
     } else if (this.state.imageFileBase64 !== nextState.imageFileBase64) {
       return true;
-    } else if (this.state.unsplashModalVisible !== nextState.unsplashModalVisible) {
-      return true;
     } else if (this.state.unsplashModalLoading !== nextState.unsplashModalLoading) {
       return true;
     } else if (this.state.unsplashImages !== nextState.unsplashImages) {
-      return true;
-    } else if (this.state.unsplashSelectedImageId !== nextState.unsplashSelectedImageId) {
-      return true;
-    } else if (this.state.unsplashSelectedImageSrc !== nextState.unsplashSelectedImageSrc) {
       return true;
     }
 
@@ -147,7 +146,6 @@ class ImageMapItems extends Component {
     canvas.canvas.wrapperEl.removeEventListener('drop', this.events.onDrop);
   };
 
-  /* eslint-disable react/sort-comp, react/prop-types */
   handlers = {
     onAddItem: (item, centered) => {
       const { canvasRef } = this.props;
@@ -175,68 +173,19 @@ class ImageMapItems extends Component {
         return;
       }
 
-      if (item.type === 'modal-button' && item.modal === 'unsplash') {
-        this.setState({ unsplashModalVisible: true });
-        return;
-      }
-
       canvasRef.handler.add(option, centered);
     },
-    onAddSVG: (option, centered) => {
-      const { canvasRef } = this.props;
-      canvasRef.handler.add({ ...option, type: 'svg', id: v4(), name: 'New SVG' }, centered);
-      this.handlers.onSVGModalVisible();
-    },
-    onDrawingItem: item => {
-      const { canvasRef } = this.props;
-      if (canvasRef.handler.workarea.layout === 'responsive') {
-        if (!canvasRef.handler.workarea.isElement) {
-          notification.warn({
-            message: 'Please your select background image',
-          });
-          return;
-        }
-      }
-      if (canvasRef.handler.interactionMode === 'polygon') {
-        message.info('Already drawing');
-        return;
-      }
-      if (item.option.type === 'line') {
-        canvasRef.handler.drawingHandler.line.init();
-      } else if (item.option.type === 'arrow') {
-        canvasRef.handler.drawingHandler.arrow.init();
-      } else {
-        canvasRef.handler.drawingHandler.polygon.init();
-      }
-    },
-    onChangeActiveKey: activeKey => {
-      this.setState({
-        activeKey,
-      });
+    onChangeTab: activeKey => {
+      this.setState({ activeKey, collapse: true });
     },
     onCollapse: () => {
-      this.setState({
-        collapse: !this.state.collapse,
-      });
-    },
-    onSearchNode: e => {
-      const filteredDescriptors = this.handlers
-        .transformList()
-        .filter(descriptor => descriptor.name.toLowerCase().includes(e.target.value.toLowerCase()));
-      this.setState({
-        textSearch: e.target.value,
-        filteredDescriptors,
-      });
+      this.setState(previousState => ({
+        collapse: !previousState.collapse,
+        activeKey: null,
+      }));
     },
     transformList: () =>
       Object.values(this.props.descriptors).reduce((prev, curr) => prev.concat(curr), []),
-    onSVGModalVisible: () => {
-      this.setState(prevState => {
-        return {
-          svgModalVisible: !prevState.svgModalVisible,
-        };
-      });
-    },
   };
 
   events = {
@@ -385,145 +334,99 @@ class ImageMapItems extends Component {
   };
 
   unsplashHandler = {
-    onOk: () => {
-      if (this.state.unsplashSelectedImageSrc) {
-        this.handlers.onAddItem({
-          name: 'Image',
-          type: 'image',
-          option: {
-            type: 'image',
-            name: 'New image',
-            src: this.state.unsplashSelectedImageSrc,
-          },
-        });
+    onSearch: (keyword, page) => {
+      if (keyword) {
+        if (page === 1) {
+          this.setState({ unsplashImages: [] });
+        }
 
-        this.setState({
-          unsplashModalVisible: false,
-          unsplashSelectedImageId: null,
-          unsplashSelectedImageSrc: null,
-        });
+        this.setState({ unsplashModalLoading: true });
+
+        unsplashService.search
+          .photos(keyword, page, 20)
+          .then(toJson)
+          .then(data => {
+            const images = data?.results.map(result => ({
+              id: result?.id,
+              alt: result?.alt_description,
+              thumbnail: result?.urls?.thumb,
+              src: result?.urls?.small,
+            }));
+
+            this.setState(
+              previousState => ({
+                unsplashImages: [...previousState.unsplashImages, ...images],
+              }),
+              () => {
+                this.setState({ unsplashModalLoading: false });
+              },
+            );
+          });
       } else {
-        message.error('No image selected');
+        message.error('No keyword inputted.');
       }
-    },
-    onCancel: () => this.setState({ unsplashModalVisible: false }),
-    onSearch: keyword => {
-      this.setState({ unsplashModalLoading: true });
-
-      unsplashService.search
-        .photos(keyword, 1, 10)
-        .then(toJson)
-        .then(data => {
-          this.setState(
-            {
-              unsplashImages: data?.results.map(result => ({
-                id: result?.id,
-                alt: result?.alt_description,
-                thumbnail: result?.urls?.thumb,
-                src: result?.urls?.regular,
-              })),
-            },
-            () => {
-              this.setState({ unsplashModalLoading: false });
-            },
-          );
-        });
-    },
-    onImageClick: (selectedImageId, selectedImageSrc) => {
-      this.setState(state => ({
-        unsplashSelectedImageSrc:
-          state.unsplashSelectedImageSrc === selectedImageSrc ? null : selectedImageSrc,
-        unsplashSelectedImageId:
-          state.unsplashSelectedImageId === selectedImageId ? null : selectedImageId,
-      }));
     },
   };
 
+  onCollapse = () => {};
+
   render() {
-    const { descriptors, form, canvasRef } = this.props;
+    const { descriptors, canvasRef } = this.props;
     const {
       collapse,
-      textSearch,
-      filteredDescriptors,
       activeKey,
-      svgModalVisible,
-      svgOption,
-
-      imageUploadModalVisible,
       imageFileBase64,
-
-      unsplashModalVisible,
       unsplashModalLoading,
       unsplashImages,
-      unsplashSelectedImageId,
     } = this.state;
-    const className = classnames('rde-editor-items', {
-      minimize: collapse,
-    });
+    const { onChangeTab, onCollapse } = this.handlers;
+    const className = classnames('rde-editor-items');
     return (
       <div className={className}>
-        <FlexBox flex="1" flexDirection="column" style={{ height: '100%', background: 'white' }}>
-          <Scrollbar>
-            <FlexBox flex="1" style={{ overflowY: 'hidden' }}>
-              {(textSearch.length && this.renderItems(filteredDescriptors)) ||
-                (collapse ? (
-                  <FlexBox
-                    flexWrap="wrap"
-                    flexDirection="column"
-                    style={{ width: '100%' }}
-                    justifyContent="center"
-                  >
-                    {this.handlers.transformList().map(item => this.renderItem(item))}
-                  </FlexBox>
-                ) : (
-                  <Collapse
-                    style={{ width: '100%' }}
-                    bordered={false}
-                    defaultActiveKey={Object.keys(descriptors)?.[0]}
-                    onChange={this.handlers.onChangeActiveKey}
-                    accordion
-                  >
-                    {Object.keys(descriptors).map(key => (
-                      <Collapse.Panel
-                        key={key}
-                        header={key}
-                        style={{ borderBottomColor: '#f1f1f1', padding: 0 }}
-                        showArrow
-                      >
-                        {this.renderItems(descriptors[key])}
-                      </Collapse.Panel>
-                    ))}
-                  </Collapse>
-                ))}
-            </FlexBox>
-          </Scrollbar>
-        </FlexBox>
-        <SVGModal
-          visible={svgModalVisible}
-          onOk={this.handlers.onAddSVG}
-          onCancel={this.handlers.onSVGModalVisible}
-          option={svgOption}
+        <CommonButton
+          className="rde-action-btn"
+          shape="circle"
+          icon={collapse ? 'angle-double-right' : 'angle-double-left'}
+          onClick={onCollapse}
+          style={{ position: 'absolute', top: 16, left: 16, zIndex: 1000 }}
         />
+        <Tabs
+          tabPosition="left"
+          style={{ height: '100%' }}
+          activeKey={activeKey}
+          onChange={onChangeTab}
+          tabBarStyle={{ marginTop: 60 }}
+        >
+          <Tabs.TabPane tab={<TabsItem iconName="font" tabName="Text" />} key="text">
+            <ItemText />
+          </Tabs.TabPane>
 
-        <ImageUploadModal
-          visible={imageUploadModalVisible}
-          imageFileBase64={imageFileBase64}
-          onRemove={this.imageUploadHandler.onRemove}
-          onCancel={this.imageUploadHandler.onCancel}
-          onOk={this.imageUploadHandler.onOk}
-          onChange={this.imageUploadHandler.onChange}
-        />
+          <Tabs.TabPane tab={<TabsItem iconName="image" tabName="Bkground" />} key="background">
+            <ItemBackground />
+          </Tabs.TabPane>
 
-        <UnsplashModal
-          visible={unsplashModalVisible}
-          onCancel={this.unsplashHandler.onCancel}
-          onOk={this.unsplashHandler.onOk}
-          onSearch={this.unsplashHandler.onSearch}
-          onImageClick={this.unsplashHandler.onImageClick}
-          selectedImageId={unsplashSelectedImageId}
-          loading={unsplashModalLoading}
-          images={unsplashImages}
-        />
+          <Tabs.TabPane tab={<TabsItem iconName="shapes" tabName="Objects" />} key="objects">
+            <ItemObjects />
+          </Tabs.TabPane>
+
+          <Tabs.TabPane tab={<TabsItem iconName="camera-retro" tabName="Stock" />} key="stock">
+            <ItemStock
+              onSearch={this.unsplashHandler.onSearch}
+              onAdd={this.handlers.onAddItem}
+              onDragStart={this.events.onDragStart}
+              onDragEnd={this.events.onDragEnd}
+              loading={unsplashModalLoading}
+              images={unsplashImages}
+            />
+          </Tabs.TabPane>
+
+          <Tabs.TabPane
+            tab={<TabsItem iconName="cloud-upload-alt" tabName="Upload" />}
+            key="upload"
+          >
+            <ItemUpload />
+          </Tabs.TabPane>
+        </Tabs>
       </div>
     );
   }
