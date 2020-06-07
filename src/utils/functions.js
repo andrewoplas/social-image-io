@@ -31,3 +31,13 @@ export const getSizeTypeDimensions = sizeType => {
       return sizeTypeDimensions.SQUARE;
   }
 };
+
+export const getAspectRatio = (width, height) => {
+  const gcd = (a, b) => (b === 0 ? a : gcd(b, a % b));
+  const ratio = gcd(width, height);
+
+  return {
+    aspectWidth: width / ratio,
+    aspectHeight: height / ratio,
+  };
+};

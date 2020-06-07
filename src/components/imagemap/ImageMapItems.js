@@ -7,28 +7,21 @@
 /**
  * Left sidebar
  */
-import React, { Component } from 'react';
-import PropTypes from 'prop-types';
-import { Collapse, notification, Input, message, Modal, Form, Radio, Tabs, Alert } from 'antd';
-import { v4 } from 'uuid';
+import { message, notification, Tabs } from 'antd';
 import classnames from 'classnames';
-import i18n from 'i18next';
+import PropTypes from 'prop-types';
+import React, { Component } from 'react';
 import Unsplash, { toJson } from 'unsplash-js';
-
+import { v4 } from 'uuid';
 import { UNSPLASH } from '../../global/config';
+import CommonButton from '../common/CommonButton';
 import { FlexBox } from '../flex';
 import Icon from '../icon/Icon';
-import Scrollbar from '../common/Scrollbar';
-import CommonButton from '../common/CommonButton';
-import { SVGModal, FileUpload, UrlModal } from '../common';
-import ImageProperty from './properties/ImageProperty';
-import ImageUploadPreview from '../common/ImageUploadPreview';
-import ImageUploadModal from './components/ImageUploadModal';
 import TabsItem from './components/TabsItem';
-import ItemText from './mapItems/ItemText';
 import ItemBackground from './mapItems/ItemBackground';
 import ItemObjects from './mapItems/ItemObjects';
 import ItemStock from './mapItems/ItemStock';
+import ItemText from './mapItems/ItemText';
 import ItemUpload from './mapItems/ItemUpload';
 
 notification.config({
@@ -52,16 +45,6 @@ class ImageMapItems extends Component {
     activeKey: null,
     descriptors: {},
     filteredDescriptors: [],
-    svgModalVisible: false,
-
-    imageUploadModalVisible: false,
-    imageLoadType: 'file',
-    imageFile: null,
-    imageFileBase64: null,
-    imageSrc: '',
-
-    unsplashModalLoading: false,
-    unsplashImages: [],
   };
 
   componentDidMount() {
@@ -94,22 +77,6 @@ class ImageMapItems extends Component {
     } else if (JSON.stringify(this.state.activeKey) !== JSON.stringify(nextState.activeKey)) {
       return true;
     } else if (this.state.collapse !== nextState.collapse) {
-      return true;
-    } else if (this.state.svgModalVisible !== nextState.svgModalVisible) {
-      return true;
-    } else if (this.state.imageUploadModalVisible !== nextState.imageUploadModalVisible) {
-      return true;
-    } else if (this.state.imageLoadType !== nextState.imageLoadType) {
-      return true;
-    } else if (this.state.imageFile !== nextState.imageFile) {
-      return true;
-    } else if (this.state.imageSrc !== nextState.imageSrc) {
-      return true;
-    } else if (this.state.imageFileBase64 !== nextState.imageFileBase64) {
-      return true;
-    } else if (this.state.unsplashModalLoading !== nextState.unsplashModalLoading) {
-      return true;
-    } else if (this.state.unsplashImages !== nextState.unsplashImages) {
       return true;
     }
 
@@ -165,11 +132,6 @@ class ImageMapItems extends Component {
       const option = Object.assign({}, item?.option, { id });
       if (item?.option?.type === 'svg' && item.type === 'default') {
         this.handlers.onSVGModalVisible(item.option);
-        return;
-      }
-
-      if (item.type === 'modal-button' && item.modal === 'image-upload') {
-        this.setState({ imageUploadModalVisible: true });
         return;
       }
 
@@ -288,97 +250,54 @@ class ImageMapItems extends Component {
     </div>
   );
 
-  imageUploadHandler = {
-    onOk: () => {
-      const { imageLoadType, imageFile, imageSrc } = this.state;
+  // imageUploadHandler = {
+  //   onOk: () => {
+  //     const { imageLoadType, imageFile, imageSrc } = this.state;
 
-      if ((imageLoadType === 'file' && !imageFile) || (imageLoadType === 'src' && !imageSrc)) {
-        message.error('No image to upload');
-        return;
-      }
+  //     if ((imageLoadType === 'file' && !imageFile) || (imageLoadType === 'src' && !imageSrc)) {
+  //       message.error('No image to upload');
+  //       return;
+  //     }
 
-      this.handlers.onAddItem({
-        name: 'Image',
-        type: 'image',
-        option: {
-          type: 'image',
-          name: 'New image',
-          [imageLoadType]: imageLoadType === 'file' ? imageFile : imageSrc,
-        },
-      });
+  //     this.handlers.onAddItem({
+  //       name: 'Image',
+  //       type: 'image',
+  //       option: {
+  //         type: 'image',
+  //         name: 'New image',
+  //         [imageLoadType]: imageLoadType === 'file' ? imageFile : imageSrc,
+  //       },
+  //     });
 
-      this.setState({
-        imageLoadType: 'file',
-        imageFile: null,
-        imageFileBase64: null,
-        imageSrc: '',
-        imageUploadModalVisible: false,
-      });
-    },
-    onCancel: () => this.setState({ imageUploadModalVisible: false }),
-    onChange: (key, value) => {
-      this.setState({ [key]: value });
+  //     this.setState({
+  //       imageLoadType: 'file',
+  //       imageFile: null,
+  //       imageFileBase64: null,
+  //       imageSrc: '',
+  //       imageUploadModalVisible: false,
+  //     });
+  //   },
+  //   onCancel: () => this.setState({ imageUploadModalVisible: false }),
+  //   onChange: (key, value) => {
+  //     this.setState({ [key]: value });
 
-      if (key === 'imageFile') {
-        const reader = new FileReader();
-        reader.readAsDataURL(value);
-        reader.onload = () => this.setState({ imageFileBase64: reader.result });
-      }
-    },
-    onRemove: () => {
-      this.setState({
-        imageFile: null,
-        imageFileBase64: null,
-      });
-    },
-  };
-
-  unsplashHandler = {
-    onSearch: (keyword, page) => {
-      if (keyword) {
-        if (page === 1) {
-          this.setState({ unsplashImages: [] });
-        }
-
-        this.setState({ unsplashModalLoading: true });
-
-        unsplashService.search
-          .photos(keyword, page, 20)
-          .then(toJson)
-          .then(data => {
-            const images = data?.results.map(result => ({
-              id: result?.id,
-              alt: result?.alt_description,
-              thumbnail: result?.urls?.thumb,
-              src: result?.urls?.small,
-            }));
-
-            this.setState(
-              previousState => ({
-                unsplashImages: [...previousState.unsplashImages, ...images],
-              }),
-              () => {
-                this.setState({ unsplashModalLoading: false });
-              },
-            );
-          });
-      } else {
-        message.error('No keyword inputted.');
-      }
-    },
-  };
-
-  onCollapse = () => {};
+  //     if (key === 'imageFile') {
+  //       const reader = new FileReader();
+  //       reader.readAsDataURL(value);
+  //       reader.onload = () => this.setState({ imageFileBase64: reader.result });
+  //     }
+  //   },
+  //   onRemove: () => {
+  //     this.setState({
+  //       imageFile: null,
+  //       imageFileBase64: null,
+  //     });
+  //   },
+  // };
 
   render() {
     const { descriptors, canvasRef } = this.props;
-    const {
-      collapse,
-      activeKey,
-      imageFileBase64,
-      unsplashModalLoading,
-      unsplashImages,
-    } = this.state;
+    const { collapse, activeKey } = this.state;
     const { onChangeTab, onCollapse } = this.handlers;
     const className = classnames('rde-editor-items');
     return (
@@ -411,12 +330,9 @@ class ImageMapItems extends Component {
 
           <Tabs.TabPane tab={<TabsItem iconName="camera-retro" tabName="Stock" />} key="stock">
             <ItemStock
-              onSearch={this.unsplashHandler.onSearch}
               onAdd={this.handlers.onAddItem}
               onDragStart={this.events.onDragStart}
               onDragEnd={this.events.onDragEnd}
-              loading={unsplashModalLoading}
-              images={unsplashImages}
             />
           </Tabs.TabPane>
 
@@ -424,7 +340,11 @@ class ImageMapItems extends Component {
             tab={<TabsItem iconName="cloud-upload-alt" tabName="Upload" />}
             key="upload"
           >
-            <ItemUpload />
+            <ItemUpload
+              onAdd={this.handlers.onAddItem}
+              onDragStart={this.events.onDragStart}
+              onDragEnd={this.events.onDragEnd}
+            />
           </Tabs.TabPane>
         </Tabs>
       </div>

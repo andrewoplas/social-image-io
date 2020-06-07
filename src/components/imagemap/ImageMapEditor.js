@@ -1,3 +1,4 @@
+/* eslint-disable no-unused-vars */
 /* eslint-disable no-alert */
 import { Badge, Button, Menu, Popconfirm } from 'antd';
 import { fabric } from 'fabric';

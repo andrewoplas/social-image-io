@@ -1,61 +1,61 @@
 /* eslint-disable jsx-a11y/click-events-have-key-events */
 /* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
-import { Col, Empty, Input, Row, Spin } from 'antd';
+import { Empty, Input, message } from 'antd';
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
+import Unsplash, { toJson } from 'unsplash-js';
+import { UNSPLASH } from '../../../global/config';
 import { Scrollbar } from '../../common';
 import { FlexBox } from '../../flex';
+import CustomGallery from '../components/CustomGallery';
+import CustomSpinner from '../components/CustomSpinner';
+import RecentlyUsedSection from '../components/RecentlyUsedSection';
 
-function ItemStock({ onSearch, onAdd, onDragStart, onDragEnd, loading, images }) {
+const unsplashService = new Unsplash({
+  accessKey: UNSPLASH.ACCESS_KEY,
+});
+
+function ItemStock({ onAdd, onDragStart, onDragEnd }) {
   const [page, setPage] = useState(1);
   const [keyword, setKeyword] = useState('');
   const [recentlyUsed, setRecentlyUsed] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [images, setImages] = useState([]);
 
-  const firstCol = [];
-  const secondCol = [];
-  images.forEach((image, index) => {
-    const colNumber = index % 2;
-    const imageItem = {
-      name: 'Image',
-      type: 'image',
-      option: {
-        type: 'image',
-        name: 'New image',
-        src: image.src,
-      },
-    };
+  const onSearch = (searchedKeyword, selectedPage) => {
+    if (searchedKeyword) {
+      if (selectedPage === 1) {
+        setImages([]);
+      }
 
-    const imageElement = (
-      <img
-        className="thumbnail"
-        key={image.id}
-        src={image.thumbnail}
-        alt={image.alt}
-        onClick={() => {
-          onAdd(imageItem, true);
-          setRecentlyUsed(recents => {
-            const previous = recents.filter(({ id }) => id !== image.id);
-            return [{ ...image, imageItem }, ...previous];
-          });
-        }}
-        onDragStart={e => onDragStart(e, imageItem)}
-        onDragEnd={e => onDragEnd(e, imageItem)}
-        draggable
-      />
-    );
+      setLoading(true);
 
-    switch (colNumber) {
-      case 0:
-        firstCol.push(imageElement);
-        break;
-      case 1:
-        secondCol.push(imageElement);
-        break;
-      default:
+      unsplashService.search
+        .photos(searchedKeyword, selectedPage, 20)
+        .then(toJson)
+        .then(data => {
+          const addedImages = data?.results.map(result => ({
+            key: result?.id,
+            width: result?.width,
+            height: result?.height,
+            alt: result?.alt_description,
+            thumbnail: result?.urls?.thumb,
+            src: result?.urls?.small,
+          }));
+
+          setImages(previousImages => [...previousImages, ...addedImages]);
+          setLoading(false);
+        });
+    } else {
+      message.error('No keyword inputted.');
     }
-  });
+  };
 
-  console.log(recentlyUsed);
+  const getImageItem = src => ({
+    name: 'Image',
+    type: 'image',
+    option: { type: 'image', name: 'New image', src },
+  });
 
   return (
     <>
@@ -82,46 +82,28 @@ function ItemStock({ onSearch, onAdd, onDragStart, onDragEnd, loading, images })
               onSearch(keyword, newPage);
             }}
           >
-            {!!recentlyUsed?.length && (
-              <>
-                <span className="sectionHeader">Recently Used</span>
-                <FlexBox style={{ height: '90px', width: '100%', marginBottom: '20px' }}>
-                  <Scrollbar orientation="horizontal">
-                    <FlexBox flexDirection="row" style={{ height: '100%' }}>
-                      {recentlyUsed.map(image => (
-                        <img
-                          className="thumbnail-horizontal"
-                          key={image.id}
-                          src={image.thumbnail}
-                          alt={image.alt}
-                          onClick={() => {
-                            onAdd(image.imageItem, true);
-                          }}
-                          onDragStart={e => onDragStart(e, image.imageItem)}
-                          onDragEnd={e => onDragEnd(e, image.imageItem)}
-                          draggable
-                        />
-                      ))}
-                    </FlexBox>
-                  </Scrollbar>
-                </FlexBox>
-              </>
-            )}
+            <RecentlyUsedSection
+              recentlyUsed={recentlyUsed}
+              onClick={onAdd}
+              onDragStart={onDragStart}
+              onDragEnd={onDragEnd}
+            />
 
-            <Row gutter={16}>
-              <Col span={12}>{firstCol}</Col>
-              <Col span={12}>{secondCol}</Col>
-            </Row>
+            <CustomGallery
+              photos={images}
+              onClick={(src, photo) => {
+                const imageItem = getImageItem(src);
+                onAdd(imageItem, true);
+                setRecentlyUsed(recents => {
+                  const previous = recents.filter(({ key }) => key !== photo.key);
+                  return [{ ...photo, imageItem }, ...previous];
+                });
+              }}
+              onDragStart={(e, src) => onDragStart(e, getImageItem(src))}
+              onDragEnd={(e, src) => onDragEnd(e, getImageItem(src))}
+            />
 
-            {loading && (
-              <FlexBox
-                justifyContent="center"
-                alignItems="center"
-                style={{ marginTop: 20, marginBottom: 30 }}
-              >
-                <Spin />
-              </FlexBox>
-            )}
+            <CustomSpinner loading={loading} />
           </Scrollbar>
         </FlexBox>
       )}
@@ -129,18 +111,10 @@ function ItemStock({ onSearch, onAdd, onDragStart, onDragEnd, loading, images })
   );
 }
 
-ItemStock.defaultProps = {
-  loading: false,
-  images: [],
-};
-
 ItemStock.propTypes = {
   onAdd: PropTypes.func.isRequired,
-  onSearch: PropTypes.func.isRequired,
   onDragStart: PropTypes.func.isRequired,
   onDragEnd: PropTypes.func.isRequired,
-  loading: PropTypes.bool,
-  images: PropTypes.array,
 };
 
 export default ItemStock;
