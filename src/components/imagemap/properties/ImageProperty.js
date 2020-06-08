@@ -1,8 +1,5 @@
+import { Form } from 'antd';
 import React from 'react';
-import { Form, Radio } from 'antd';
-import i18n from 'i18next';
-
-import UrlModal from '../../common/UrlModal';
 import FileUpload from '../../common/FileUpload';
 
 export default {
@@ -25,12 +22,12 @@ export default {
           )}
         </Form.Item> */}
         {/* {imageLoadType === 'file' ? ( */}
-        <Form.Item label={i18n.t('common.file')} colon={false}>
+        <Form.Item label="File" colon={false}>
           {getFieldDecorator('file', {
             rules: [
               {
                 required: true,
-                message: i18n.t('validation.enter-property', { arg: i18n.t('common.file') }),
+                message: 'Please upload a file',
               },
             ],
             initialValue: data.file,

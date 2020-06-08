@@ -71,5 +71,6 @@ module.exports = {
     'react/sort-comp': 0,
     'require-yield': 0,
     'react/prefer-stateless-function': 0,
+    'react/no-access-state-in-setstate': 1,
   },
 };

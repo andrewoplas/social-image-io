@@ -1,6 +1,5 @@
 import { fabric } from 'fabric';
 import { v4 } from 'uuid';
-import i18next from 'i18next';
 
 import { FabricObject } from '../utils';
 import { LinkObject } from './Link';
@@ -34,10 +33,10 @@ export const OUT_PORT_TYPE = {
 };
 
 export const DESCRIPTIONS = {
-	script: i18next.t('common.name'),
-	template: i18next.t('common.name'),
-	json: i18next.t('common.name'),
-	cron: i18next.t('common.name'),
+	script: "Name",
+	template: "Name",
+	json: "Name",
+	cron: "Name",
 };
 
 export const getEllipsis = (text: string, length: number) => {

@@ -1,7 +1,6 @@
 /* eslint-disable consistent-return */
 /* eslint-disable react/sort-comp, react/prop-types */
 import { Button, Divider } from 'antd';
-import i18n from 'i18next';
 import PropTypes from 'prop-types';
 import React, { Component } from 'react';
 import CommonButton from '../common/CommonButton';
@@ -97,7 +96,7 @@ class ImageMapFooterToolbar extends Component {
                 selection();
               }}
               icon="mouse-pointer"
-              tooltipTitle={i18n.t('action.selection')}
+              tooltipTitle="Selection mode(Q)"
             />
             <CommonButton
               type={interactionMode === 'grab' ? 'primary' : 'default'}
@@ -105,7 +104,7 @@ class ImageMapFooterToolbar extends Component {
               onClick={() => {
                 grab();
               }}
-              tooltipTitle={i18n.t('action.grab')}
+              tooltipTitle="Grab mode(W or Alt + Drag)"
               icon="hand-rock"
             />
           </Button.Group>
@@ -118,13 +117,13 @@ class ImageMapFooterToolbar extends Component {
                 canvasRef.handler.zoomHandler.zoomOut();
               }}
               icon="search-minus"
-              tooltipTitle={i18n.t('action.zoom-out')}
+              tooltipTitle="Zoom Out"
             />
             <CommonButton
               onClick={() => {
                 canvasRef.handler.zoomHandler.zoomOneToOne();
               }}
-              tooltipTitle={i18n.t('action.one-to-one')}
+              tooltipTitle="1:1"
             >
               {`${zoomValue}%`}
             </CommonButton>
@@ -132,7 +131,7 @@ class ImageMapFooterToolbar extends Component {
               onClick={() => {
                 canvasRef.handler.zoomHandler.zoomToFit();
               }}
-              tooltipTitle={i18n.t('action.fit')}
+              tooltipTitle="Scale to fit"
               icon="expand"
             />
             <CommonButton
@@ -141,7 +140,7 @@ class ImageMapFooterToolbar extends Component {
                 canvasRef.handler.zoomHandler.zoomIn();
               }}
               icon="search-plus"
-              tooltipTitle={i18n.t('action.zoom-in')}
+              tooltipTitle="Zoom In"
             />
           </Button.Group>
         </div>

@@ -16,9 +16,6 @@ const plugins = [
   new HtmlWebpackPlugin({
     filename: 'index.html',
     title: 'Social Image',
-    meta: {
-      description: `Social Image has started to developed direct manipulation of editable design tools like Powerpoint, We've developed it with react.js, ant.design, fabric.js`,
-    },
   }),
   new WorkboxPlugin.GenerateSW({
     skipWaiting: true,
