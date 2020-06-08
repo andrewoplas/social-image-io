@@ -2,7 +2,6 @@
 /* eslint-disable no-alert */
 import { Badge, Button, Menu, Popconfirm } from 'antd';
 import { fabric } from 'fabric';
-import i18n from 'i18next';
 import Jimp from 'jimp';
 import debounce from 'lodash/debounce';
 import React, { Component } from 'react';
@@ -465,7 +464,7 @@ class ImageMapEditor extends Component {
         const { layerX: left, layerY: top } = event;
         return (
           <Menu>
-            <Menu.SubMenu key="add" style={{ width: 120 }} title={i18n.t('action.add')}>
+            <Menu.SubMenu key="add" style={{ width: 120 }} title="Add">
               {this.transformList().map(item => {
                 const option = Object.assign({}, item.option, { left, top });
                 const newItem = Object.assign({}, item, { option });
@@ -487,21 +486,21 @@ class ImageMapEditor extends Component {
                 this.canvasRef.handler.toGroup();
               }}
             >
-              {i18n.t('action.object-group')}
+              Group
             </Menu.Item>
             <Menu.Item
               onClick={() => {
                 this.canvasRef.handler.duplicate();
               }}
             >
-              {i18n.t('action.clone')}
+              Clone
             </Menu.Item>
             <Menu.Item
               onClick={() => {
                 this.canvasRef.handler.remove();
               }}
             >
-              {i18n.t('action.delete')}
+              Delete
             </Menu.Item>
           </Menu>
         );
@@ -514,21 +513,21 @@ class ImageMapEditor extends Component {
                 this.canvasRef.handler.toActiveSelection();
               }}
             >
-              {i18n.t('action.object-ungroup')}
+              Ungroup
             </Menu.Item>
             <Menu.Item
               onClick={() => {
                 this.canvasRef.handler.duplicate();
               }}
             >
-              {i18n.t('action.clone')}
+              Clone
             </Menu.Item>
             <Menu.Item
               onClick={() => {
                 this.canvasRef.handler.remove();
               }}
             >
-              {i18n.t('action.delete')}
+              Delete
             </Menu.Item>
           </Menu>
         );
@@ -540,14 +539,14 @@ class ImageMapEditor extends Component {
               this.canvasRef.handler.duplicateById(target.id);
             }}
           >
-            {i18n.t('action.clone')}
+            Clone
           </Menu.Item>
           <Menu.Item
             onClick={() => {
               this.canvasRef.handler.removeById(target.id);
             }}
           >
-            {i18n.t('action.delete')}
+            Delete
           </Menu.Item>
         </Menu>
       );
@@ -904,15 +903,15 @@ class ImageMapEditor extends Component {
           shape="circle"
           icon="file-download"
           disabled={!editing}
-          tooltipTitle={i18n.t('action.download')}
+          tooltipTitle="Download"
           onClick={onDownload}
           tooltipPlacement="bottomRight"
         />
         {editing ? (
           <Popconfirm
-            title={i18n.t('imagemap.imagemap-editing-confirm')}
-            okText={i18n.t('action.ok')}
-            cancelText={i18n.t('action.cancel')}
+            title="The image map contents have been modified. Do you want to do that anyway?"
+            okText="Ok"
+            cancelText="Cancel"
             onConfirm={onUpload}
             placement="bottomRight"
           >
@@ -920,7 +919,7 @@ class ImageMapEditor extends Component {
               className="rde-action-btn"
               shape="circle"
               icon="file-upload"
-              tooltipTitle={i18n.t('action.upload')}
+              tooltipTitle="Upload"
               tooltipPlacement="bottomRight"
             />
           </Popconfirm>
@@ -929,7 +928,7 @@ class ImageMapEditor extends Component {
             className="rde-action-btn"
             shape="circle"
             icon="file-upload"
-            tooltipTitle={i18n.t('action.upload')}
+            tooltipTitle="Upload"
             tooltipPlacement="bottomRight"
             onClick={onUpload}
           />
@@ -938,7 +937,7 @@ class ImageMapEditor extends Component {
           className="rde-action-btn"
           shape="circle"
           icon="image"
-          tooltipTitle={i18n.t('action.image-save')}
+          tooltipTitle="Save Image"
           onClick={onSaveImage}
           tooltipPlacement="bottomRight"
         />

@@ -2,10 +2,9 @@
  * Main header of the app
  */
 import { Button, Modal, Tooltip } from 'antd';
-import i18n from 'i18next';
 import React, { useState } from 'react';
 import { FlexBox } from '../../components/flex';
-import { ShortcutHelp } from '../../components/help';
+import { ShortcutHelp } from '../../components/help/index.tsx';
 import Icon from '../../components/icon/Icon';
 
 const Title = () => {
@@ -17,7 +16,7 @@ const Title = () => {
     <FlexBox style={{ background: 'white' }} flexWrap="wrap" flex="1" alignItems="center">
       <FlexBox style={{ marginLeft: 8 }} flex="0 1 auto" justifyContent="space-between">
         <img className="logo-image" src="./images/logo-placeholder.png" alt="logo" />
-        <Tooltip title={i18n.t('action.shortcut-help')} overlayStyle={{ fontSize: 11 }}>
+        <Tooltip title="Shortcut" overlayStyle={{ fontSize: 11 }}>
           <Button
             className="rde-action-btn"
             style={{

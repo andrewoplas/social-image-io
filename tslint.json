@@ -20,7 +20,8 @@
     "jsx-wrap-multiline": false,
     "array-type": false,
     "variable-name": false,
-    "object-literal-key-quotes": false
+    "object-literal-key-quotes": false,
+    "react/no-access-state-in-setstate": 1
   },
   "linterOptions": {
     "exclude": ["**/node_modules/**"]

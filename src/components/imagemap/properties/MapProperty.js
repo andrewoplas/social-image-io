@@ -1,6 +1,5 @@
 import React from 'react';
 import { Form, Input, Radio, Row, Col, InputNumber, Tooltip } from 'antd';
-import i18n from 'i18next';
 import { sizeTypes, sizeTypeDimensions } from '../../../global/variables';
 
 export default {
@@ -12,25 +11,23 @@ export default {
     const layout = data.layout || 'fixed';
     return (
       <React.Fragment>
-        <Form.Item label={i18n.t('common.name')} colon={false}>
+        <Form.Item label="Name" colon={false}>
           {getFieldDecorator('name', {
             rules: [
               {
                 required: false,
-                message: i18n.t('validation.enter-property', { arg: i18n.t('common.name') }),
+                message: 'Please enter a name',
               },
             ],
             initialValue: data.name || '',
           })(<Input />)}
         </Form.Item>
-        <Form.Item label={i18n.t('common.slides')} colon={false}>
+        <Form.Item label="Number of Slides" colon={false}>
           {getFieldDecorator('slides', {
             rules: [
               {
                 required: false,
-                message: i18n.t('validation.enter-property', {
-                  arg: i18n.t('common.slides'),
-                }),
+                message: 'Please enter a number of slides',
               },
             ],
             initialValue: data.slides,
@@ -64,14 +61,11 @@ export default {
           <React.Fragment>
             <Row gutter={16}>
               <Col span={12}>
-                <Form.Item label={i18n.t('common.width')} colon={false}>
+                <Form.Item label="Width" colon={false}>
                   {getFieldDecorator('slidesWidth', {
                     rules: [
                       {
                         required: false,
-                        message: i18n.t('validation.enter-property', {
-                          arg: i18n.t('common.slidesWidth'),
-                        }),
                       },
                     ],
                     initialValue: data.slidesWidth,
@@ -79,14 +73,11 @@ export default {
                 </Form.Item>
               </Col>
               <Col span={12}>
-                <Form.Item label={i18n.t('common.height')} colon={false}>
+                <Form.Item label="Height" colon={false}>
                   {getFieldDecorator('height', {
                     rules: [
                       {
                         required: false,
-                        message: i18n.t('validation.enter-property', {
-                          arg: i18n.t('common.height'),
-                        }),
                       },
                     ],
                     initialValue: data.height * data.scaleY,

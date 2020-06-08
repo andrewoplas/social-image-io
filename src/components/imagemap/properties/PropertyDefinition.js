@@ -1,19 +1,15 @@
-import MarkerProperty from './MarkerProperty';
 import GeneralProperty from './GeneralProperty';
-import StyleProperty from './StyleProperty';
-import TooltipProperty from './TooltipProperty';
-import ImageProperty from './ImageProperty';
-import TextProperty from './TextProperty';
-import MapProperty from './MapProperty';
-import LinkProperty from './LinkProperty';
-import VideoProperty from './VideoProperty';
-import IframeProperty from './IframeProperty';
-import AnimationProperty from './AnimationProperty';
-import ShadowProperty from './ShadowProperty';
-import UserProperty from './UserProperty';
-import TriggerProperty from './TriggerProperty';
 import ImageFilterProperty from './ImageFilterProperty';
-import ChartProperty from './ChartProperty';
+import ImageProperty from './ImageProperty';
+import LinkProperty from './LinkProperty';
+import MapProperty from './MapProperty';
+import MarkerProperty from './MarkerProperty';
+import ShadowProperty from './ShadowProperty';
+import StyleProperty from './StyleProperty';
+import TextProperty from './TextProperty';
+import TooltipProperty from './TooltipProperty';
+import TriggerProperty from './TriggerProperty';
+import UserProperty from './UserProperty';
 
 export default {
   map: {
@@ -56,10 +52,6 @@ export default {
     shadow: {
       title: 'Shadow',
       component: ShadowProperty,
-    },
-    animation: {
-      title: 'Animation',
-      component: AnimationProperty,
     },
     trigger: {
       title: 'Trigger',
