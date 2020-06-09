@@ -321,7 +321,11 @@ class ImageMapItems extends Component {
           </Tabs.TabPane>
 
           <Tabs.TabPane tab={<TabsItem iconName="image" tabName="Bkground" />} key="background">
-            <ItemBackground />
+            <ItemBackground
+              onAdd={this.handlers.onAddItem}
+              onDragStart={this.events.onDragStart}
+              onDragEnd={this.events.onDragEnd}
+            />
           </Tabs.TabPane>
 
           <Tabs.TabPane tab={<TabsItem iconName="shapes" tabName="Objects" />} key="objects">

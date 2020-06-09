@@ -46,6 +46,8 @@ module.exports = {
     'jsx-a11y/mouse-events-have-key-events': 0,
     'jsx-a11y/role-has-required-aria-props': 0,
     'jsx-a11y/role-supports-aria-props': 0,
+    'jsx-a11y/click-events-have-key-events': 0,
+    'jsx-a11y/no-noninteractive-element-interactions': 0,
     'max-len': 0,
     camelcase: 0,
     'newline-per-chained-call': 0,

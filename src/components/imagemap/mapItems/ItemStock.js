@@ -1,5 +1,3 @@
-/* eslint-disable jsx-a11y/click-events-have-key-events */
-/* eslint-disable jsx-a11y/no-noninteractive-element-interactions */
 import { Empty, Input, message } from 'antd';
 import PropTypes from 'prop-types';
 import React, { useState } from 'react';
@@ -16,7 +14,7 @@ const unsplashService = new Unsplash({
   accessKey: UNSPLASH.ACCESS_KEY,
 });
 
-function ItemStock({ onAdd, onDragStart, onDragEnd }) {
+const ItemStock = ({ onAdd, onDragStart, onDragEnd }) => {
   const [page, setPage] = useState(1);
   const [keyword, setKeyword] = useState('');
   const [recentlyUsed, setRecentlyUsed] = useState([]);
@@ -32,7 +30,7 @@ function ItemStock({ onAdd, onDragStart, onDragEnd }) {
       setLoading(true);
 
       unsplashService.search
-        .photos(searchedKeyword, selectedPage, 20)
+        .photos(searchedKeyword, selectedPage, UNSPLASH.MAX_PAGES)
         .then(toJson)
         .then(data => {
           const addedImages = data?.results.map(result => ({
@@ -104,7 +102,7 @@ function ItemStock({ onAdd, onDragStart, onDragEnd }) {
       )}
     </>
   );
-}
+};
 
 ItemStock.propTypes = {
   onAdd: PropTypes.func.isRequired,
