@@ -41,3 +41,9 @@ export const getAspectRatio = (width, height) => {
     aspectHeight: height / ratio,
   };
 };
+
+export const getImageItem = (src, name = 'NewImage') => ({
+  name: 'Image',
+  type: 'image',
+  option: { type: 'image', name, src },
+});

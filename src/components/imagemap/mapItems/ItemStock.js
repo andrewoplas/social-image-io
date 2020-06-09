@@ -5,6 +5,7 @@ import PropTypes from 'prop-types';
 import React, { useState } from 'react';
 import Unsplash, { toJson } from 'unsplash-js';
 import { UNSPLASH } from '../../../global/config';
+import { getImageItem } from '../../../utils/functions';
 import { Scrollbar } from '../../common';
 import { FlexBox } from '../../flex';
 import CustomGallery from '../components/CustomGallery';
@@ -51,12 +52,6 @@ function ItemStock({ onAdd, onDragStart, onDragEnd }) {
     }
   };
 
-  const getImageItem = src => ({
-    name: 'Image',
-    type: 'image',
-    option: { type: 'image', name: 'New image', src },
-  });
-
   return (
     <>
       <Input.Search
@@ -66,8 +61,8 @@ function ItemStock({ onAdd, onDragStart, onDragEnd }) {
           setKeyword(value.trim());
           onSearch(value.trim(), page);
         }}
-        loading={loading}
         style={{ marginBottom: '20px' }}
+        loading={loading}
         enterButton
       />
 

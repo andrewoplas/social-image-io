@@ -25,8 +25,8 @@ const CustomGallery = ({ photos, onClick, onDragStart, onDragEnd }) =>
             top,
           }}
           onClick={() => onClick(photo.src, photo)}
-          onDragStart={e => onDragStart(e, photo.src)}
-          onDragEnd={e => onDragEnd(e, photo.src)}
+          onDragStart={e => onDragStart(e, photo.src, photo)}
+          onDragEnd={e => onDragEnd(e, photo.src, photo)}
           draggable
         >
           <img
