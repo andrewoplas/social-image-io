@@ -37,9 +37,9 @@ export default {
               initialValue: data.fontSize || '32',
             })(
               <Select>
-                {Array.from({ length: 60 }, (v, k) => (
-                  <Select.Option key={k} value={`${k + 1}`}>
-                    {k + 1}
+                {Array.from({ length: 101 }, (v, k) => (
+                  <Select.Option key={k} value={`${k * 2}`}>
+                    {k * 2}
                   </Select.Option>
                 ))}
               </Select>,

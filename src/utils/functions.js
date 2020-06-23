@@ -47,3 +47,17 @@ export const getImageItem = (src, name = 'NewImage') => ({
   type: 'image',
   option: { type: 'image', name, src },
 });
+
+export const getTextItem = fontFamily => ({
+  name: 'Text',
+  type: 'text',
+  option: {
+    type: 'textbox',
+    text: 'Edit text here',
+    fontFamily,
+    width: 400,
+    height: 80,
+    fontSize: 60,
+    name: 'New text',
+  },
+});

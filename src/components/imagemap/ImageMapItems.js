@@ -317,7 +317,11 @@ class ImageMapItems extends Component {
           tabBarStyle={{ marginTop: 60 }}
         >
           <Tabs.TabPane tab={<TabsItem iconName="font" tabName="Text" />} key="text">
-            <ItemText />
+            <ItemText
+              onAdd={this.handlers.onAddItem}
+              onDragStart={this.events.onDragStart}
+              onDragEnd={this.events.onDragEnd}
+            />
           </Tabs.TabPane>
 
           <Tabs.TabPane tab={<TabsItem iconName="image" tabName="Bkground" />} key="background">

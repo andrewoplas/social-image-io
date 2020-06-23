@@ -51,4 +51,7 @@ export default {
   getFonts() {
     return fonts;
   },
+  getGoogleFonts() {
+    return fonts.google;
+  },
 };
